@@ -5,31 +5,39 @@
         <p class="mb-2">
             <%= __('cookies.content') %>
         </p>
-        <button id="acceptCookies" class="btn btn-primary btn-sm">Accept</button>
-        <button id="declineCookies" class="btn btn-secondary btn-sm ms-2">Decline</button>
+        <button id="accept" class="btn btn-primary btn-sm">Accept</button>
+        <button id="decline" class="btn btn-secondary btn-sm ms-2">Decline</button>
     </div>
 
     <!-- JavaScript to Handle Cookie Consent -->
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const cookiePopup = document.getElementById("cookieConsent");
-            const acceptBtn = document.getElementById("acceptCookies");
-            const declineBtn = document.getElementById("declineCookies");
+            const accept = document.getElementById("accept");
+            const decline = document.getElementById("decline");
 
             // Handle Accept
-            acceptBtn.addEventListener("click", () => {
-                localStorage.setItem("cookiesAccepted", "true");
+            accept.addEventListener("click", () => {
+                fadeOut(cookiePopup);
                 setCookies(true);
-                cookiePopup.style.display = "none"; // Hide popup
+                
+                
             });
 
             // Handle Decline
-            declineBtn.addEventListener("click", () => {
-                localStorage.setItem("cookiesAccepted", "false");
+            decline.addEventListener("click", () => {
+                fadeOut(cookiePopup);
                 setCookies(false);
-                cookiePopup.style.display = "none"; // Hide popup
+                
+                
             });
 
+            function fadeOut(element) {
+                element.style.opacity = "0";  
+                setTimeout(() => {
+                    element.style.display = "none";  
+                }, 500);
+            }
             function setCookies(cookiesBool) {
                 fetch("/set-cookies", {
                     method: "POST",
@@ -39,4 +47,11 @@
             }
         });
     </script>
+    <style>
+        /* Set opacity to 1 and apply 0.5s transition effect when opacity changes*/
+        #cookieConsent {
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out;
+        }
+    </style>
 <% } %>
