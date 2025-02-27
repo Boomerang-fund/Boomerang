@@ -15,7 +15,7 @@ module.exports.index = async (req, res) => {
 
     // Fetch all projects
     const allProjects = await Project.find({});
-    const projects = mapTitleAndDescription(allProjects, {title, description, ...rest});
+    const projects = mapTitleAndDescription(allProjects, language);
 
     // Sort projects by relevance
     if (user && user.keywords instanceof Map) {
@@ -41,7 +41,7 @@ module.exports.index = async (req, res) => {
             author: req.user._id,
             isDraft: false, // Exclude drafts
         });
-        myProjects = mapTitleAndDescription(allProjects, {title, description, ...rest});
+        myProjects = mapTitleAndDescription(userProjects, language);
     }
 
     // Convert projects to GeoJSON format
@@ -66,13 +66,12 @@ module.exports.index = async (req, res) => {
     }
 };
 
-function mapTitleAndDescription(projects, dict) {
-    const ret = projects.map((dict) => ({
-            ...rest,
-            titleText: project.title.get(language),
-            descriptionText: project.description.get(language),
-        }));
-    return ret;
+function mapTitleAndDescription(projects, language) {
+    return projects.map((project) => ({
+        ...project.toObject(), // Convert Mongoose model to plain object
+        titleText: project.title?.get(language) || project.title?.get("en") || "Untitled",
+        descriptionText: project.description?.get(language) || project.description?.get("en") || "No description available",
+    }));
 }
 
 function mapGeoJSON(projects) {
@@ -369,7 +368,7 @@ module.exports.getProjectsByCategory = async (req, res) => {
 async function add_user_keywords(req, project, Users) {
     const user = await get_user(Users, req);
     if (user) {
-        const userKeywords = new Multiset(user.keywords || new Map()); // Initialize if undefined
+        const userKeywords = new Multiset(user.keywords || new Map()); // Ensure it's a valid Multiset
 
         const projectKeywords = Array.isArray(project.keywords)
             ? project.keywords
@@ -378,19 +377,24 @@ async function add_user_keywords(req, project, Users) {
 
         let topN = [];
         const maxAtN = 3;
-        for (const [key, value] of userKeywords) {
+
+        for (const [key, value] of userKeywords.entries()) {  // ✅ FIX: Use `.entries()`
             topN.push(value);
-            topN.sort((a, b) => b - a);
-            if (topN.length > maxAtN) {
-                topN.pop();
-            }
         }
-        userKeywords.set('max', topN[-1 + Math.min(maxAtN, topN.length)]);
-        
+
+        topN.sort((a, b) => b - a); // Sort in descending order
+
+        if (topN.length > maxAtN) {
+            topN = topN.slice(0, maxAtN); // Keep only the top N elements
+        }
+
+        userKeywords.set("max", topN[Math.min(maxAtN, topN.length) - 1]); // ✅ FIXED indexing issue
+
         user.keywords = userKeywords.export();
         await user.save();
     }
 }
+
 
 module.exports.renderEditForm = async (req, res) => {
     const { id } = req.params;

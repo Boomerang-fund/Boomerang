@@ -431,41 +431,5 @@
     }
 </style>
 
-<script>
-    function setLanguage(language) {
-        // Sends the POST method without reloading the page
-        fetch("/set-language", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ language })
-        })
-        .then(response => response.json())
-        // .then(data => console.log("Language set:", data.message))
-        .catch(error => console.error("Error setting language:", error));
-    }
-    function setCurrency(currency) {
-        // Sends the POST method without reloading the page
-        fetch("/set-currency", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ currency })
-        })
-        .then(response => response.json())
-        // .then(data => console.log("Currency set:", data.message))
-        .catch(error => console.error("Error setting language:", error));
-    }
-</script>
-
-
-<script>
-    function setCookies(cookiesBool) {
-        fetch("/set-cookies", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ cookiesBool })
-        })
-        .then(response => response.json())
-        // .then(data => console.log("Cookies set:", data.message))
-        .catch(error => console.error("Error setting cookies:", error));
-    }
-</script>
+<script src="/javascripts/setLanguagesAndCurrencies.js"></script>
+<script src="/javascripts/setCookies.js"></script>

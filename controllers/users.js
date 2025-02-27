@@ -40,10 +40,17 @@ module.exports.logout = (req, res, next) => {
         if (err) {
             return next(err);
         }
-        res.clearCookie("connect.sid"); // Ensure session cookie is deleted
-        if (req.session) {req.session.destroy();}
 
-        req.flash("success", "Successfully logged out!");
-        res.redirect("/projects");
+        req.flash("success", "Successfully logged out!"); // ✅ Move flash before session destruction
+
+        res.clearCookie("connect.sid"); // Ensure session cookie is deleted
+        if (req.session) {
+            req.session.destroy(() => {
+                res.redirect("/projects"); // Redirect after session is destroyed
+            });
+        } else {
+            res.redirect("/projects");
+        }
     });
 };
+

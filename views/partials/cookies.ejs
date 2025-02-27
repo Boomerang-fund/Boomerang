@@ -1,0 +1,42 @@
+<% if (!cookiesBool) { %>
+    <!-- Cookie Consent Popup -->
+    <div id="cookieConsent" class="alert alert-light shadow-lg position-fixed bottom-0 start-50 translate-middle-x w-75 text-center p-3 rounded"
+        style="max-width: 500px; z-index: 1050; background-color: rgba(255, 255, 255, 0.95); border: 1px solid #ddd;">
+        <p class="mb-2">
+            <%= __('cookies.content') %>
+        </p>
+        <button id="acceptCookies" class="btn btn-primary btn-sm">Accept</button>
+        <button id="declineCookies" class="btn btn-secondary btn-sm ms-2">Decline</button>
+    </div>
+
+    <!-- JavaScript to Handle Cookie Consent -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const cookiePopup = document.getElementById("cookieConsent");
+            const acceptBtn = document.getElementById("acceptCookies");
+            const declineBtn = document.getElementById("declineCookies");
+
+            // Handle Accept
+            acceptBtn.addEventListener("click", () => {
+                localStorage.setItem("cookiesAccepted", "true");
+                setCookies(true);
+                cookiePopup.style.display = "none"; // Hide popup
+            });
+
+            // Handle Decline
+            declineBtn.addEventListener("click", () => {
+                localStorage.setItem("cookiesAccepted", "false");
+                setCookies(false);
+                cookiePopup.style.display = "none"; // Hide popup
+            });
+
+            function setCookies(cookiesBool) {
+                fetch("/set-cookies", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ cookiesBool })
+                }).catch(error => console.error("Error setting cookies:", error));
+            }
+        });
+    </script>
+<% } %>

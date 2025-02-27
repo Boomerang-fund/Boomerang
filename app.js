@@ -32,8 +32,8 @@ const searchRoute = require("./routes/search");
 const authRoutes = require("./routes/auth");
 const sendWelcomeEmail = require("./utils/sendEmail"); // Import your email utility
 
-const languageRoutes = require("./routes/languageRoutes");
-const currencyRoutes = require("./routes/currencyRoutes");
+const languageRoutes = require("./routes/language");
+const currencyRoutes = require("./routes/currency");
 const cookiesRoutes = require("./routes/cookies");
 const i18n = require("i18n");
 
@@ -78,12 +78,12 @@ const sessionConfig = {
     store: store,
     secret: "toberemoved", // replace that w/ this: process.env.SESSION_SECRET
     resave: false,
-    saveUninitialized: false,
+    saveUninitialized: true,
     cookie: {
         httpOnly: true,
         secure: false, // TODO: Set to true for production
         sameSite: "lax",
-        maxAge: 1000 * 60 * 60 * 24 * 7,
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 1 week
     },
 };
 
@@ -158,32 +158,41 @@ app.use(async (req, res, next) => {
 app.use(async (req, res, next) => {
     req.session
     try {
-        // res.lcoals.__ is a FRONT END reference for any data put in it
+        // res.locals.__ is a FRONT END reference for any data put in it
         // req.session.__ is a BACK END quick reference for any data put in it (Only refernce this)
         // user.__ is the actual data that is saved. This saved data is then put into req.session.__ (Only save to this & load from this into req.session.__)
 
         // Defaults to chosen value unless session or user data exists
         let language = "th";
         let currency = "THB";
-
+        
+        // if (!req.session.cookiesBool){
+        //     res.render("cookies.ejs")
+        // }
+        
         if (req.session.cookiesBool) {
             if (req.session.language) {language = req.session.language;}
             if (req.session.currency) {currency = req.session.currency;}
         }
 
         // Overwrite session data with user data if available
-        if (req.isAuthenticated()) {
-            const user = await User.findById(req.user._id);
-            if (user && user.cookiesBool) {
-                req.session.cookiesBool = user.cookiesBool;
+        if (req.isAuthenticated() && req.user) {
+            const user = await User.findById(req.user._id).lean(); // Use .lean() to improve query performance
 
-                if (user.language) {language = user.language;} // User data overrides session data
-                if (user.currency) {currency = user.currency;} // User data overrides session data
+            if (user) {
+                // Sync cookies preference
+                req.session.cookiesBool = user.cookiesBool ?? req.session.cookiesBool;
+
+                // Override session values with user values if available
+                if (user.language) language = user.language;
+                if (user.currency) currency = user.currency;
 
                 req.session.language = language;
                 req.session.currency = currency;
-            } else if (!req.session.cookiesBool) {
+            } else {
+                // Destroy session if user record is missing
                 req.session.destroy();
+                return res.redirect("/login"); // Redirect user if session is invalid
             }
         }
 
@@ -194,20 +203,18 @@ app.use(async (req, res, next) => {
         res.locals.availableCurrencies = availableCurrencies;
         res.locals.selectedLanguage = language;
         res.locals.selectedCurrency = currency;
-
+        res.locals.cookiesBool = req.session.cookiesBool;
+        console.log(`New Request: ${req.method} ${req.url}`);
+        
+        // console.log(res.locals.cookiesBool);
+        res.locals.currentUser = req.user;
+        res.locals.success = req.flash("success");
+        res.locals.error = req.flash("error");
         next();
     } catch (error) {
         console.error("Error syncing", error);
         next(error);
     }
-});
-
-app.use((req, res, next) => {
-    console.log(req.session);
-    res.locals.currentUser = req.user;
-    res.locals.success = req.flash("success");
-    error = req.flash("error");
-    next();
 });
 
 app.use("/", usersRoutes);

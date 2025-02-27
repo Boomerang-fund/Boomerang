@@ -64,8 +64,8 @@ exchangeRates.data[projectCurrency])).toFixed(2); } %>
                 </li>
                 <li class="list-group-item text-muted">
                     <b> <%= __('show.fundingGoal') %>: </b>
-                    <%= getCurrencySymbol(userCurrency) %> <%=
-                    getExchangeRates(userCurrency, project.currency,
+                    <%= getCurrencySymbol(selectedCurrency) %> <%=
+                    getExchangeRates(selectedCurrency, project.currency,
                     project.fundingGoal, currencyData) %>
                 </li>
                 <li class="list-group-item">

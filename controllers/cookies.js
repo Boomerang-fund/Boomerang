@@ -14,6 +14,7 @@ module.exports.destroySession = (req, res) => {
 
 module.exports.setCookies = async (req, res) => {
     const { cookiesBool } = req.body;
+    
     if (typeof cookiesBool !== "boolean") {
         return res.status(400).json({ error: "Invalid value for cookiesBool" });
     }
