@@ -117,14 +117,10 @@ const ProjectSchema = new Schema(
                 ], // Restrict to predefined categories
             },
         ],
-        keywords: [
-            {
-                type: String,
-            },
-        ],
-        relevanceScore: { type: Number },
+        
         isDraft: { type: Boolean, default: false },
         lastSavedAt: { type: Date, default: Date.now },
+        embedding: [Number]
     },
     opts
 );

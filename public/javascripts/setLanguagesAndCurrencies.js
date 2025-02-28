@@ -10,8 +10,6 @@ function setLanguage(language) {
     .then(data => {
         // Update the dropdown button text immediately
         document.getElementById("languageDropdown").innerText = language.toUpperCase();
-        
-        
     })
     .catch(error => console.error("Error setting language:", error));
     }

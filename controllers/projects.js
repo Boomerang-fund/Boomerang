@@ -17,23 +17,6 @@ module.exports.index = async (req, res) => {
     const allProjects = await Project.find({});
     const projects = mapTitleAndDescription(allProjects, language);
 
-    // Sort projects by relevance
-    if (user && user.keywords instanceof Map) {
-        const keywords = user.keywords;
-        projects.forEach((project) => {
-            const projectKeywords = Array.isArray(project.keywords)
-                ? project.keywords
-                : [];
-            project.relevanceScore = calculateRelevance(
-                projectKeywords,
-                keywords
-            );
-        });
-
-        // Sort projects by relevance score
-        projects.sort((a, b) => b.relevanceScore - a.relevanceScore);
-    }
-
     // Fetch user's own projects if logged in
     let myProjects = [];
     if (req.user) {
@@ -137,23 +120,6 @@ module.exports.createProject = async (req, res, next) => {
                 req.body.project.description.get("en"); // Set descriptionText
         }
 
-        // Automatically determine categories based on selected keywords
-        const selectedKeywords = req.body.project.keywords || [];
-        const determinedCategories = [];
-
-        for (const [category, keywords] of Object.entries(categories)) {
-            // Check if any of the selected keywords belong to this category
-            const matchingKeywords = selectedKeywords.filter((keyword) =>
-                keywords.includes(keyword)
-            );
-            if (matchingKeywords.length > 0) {
-                determinedCategories.push(category);
-            }
-        }
-
-        // Assign the determined categories to the project data
-        req.body.project.categories = determinedCategories;
-
         if (draftId) {
             // Update an existing draft
             project = await Project.findById(draftId);
@@ -197,7 +163,7 @@ module.exports.createProject = async (req, res, next) => {
                     url: f.path,
                     filename: f.filename,
                 })),
-                categories: determinedCategories, // Automatically assigned categories
+                 // Automatically assigned categories
                 author: req.user._id, // Associate with the current user
             });
         }
@@ -313,7 +279,7 @@ module.exports.showProject = async (req, res) => {
             mapToken: process.env.MAPBOX_TOKEN, // Pass Mapbox token
         });
 
-        add_user_keywords(req, project, Users);
+        
     } catch (error) {
         console.error("Error in showProject:", error);
         req.flash("error", "Something went wrong!");
@@ -588,17 +554,3 @@ async function get_user(Users, req) {
     return user;
 }
 
-function calculateRelevance(project_keywords, user_keywords) {
-    if (!user_keywords || !(user_keywords instanceof Map)) {
-        return 0;
-    }
-
-    let relevance = 0;
-    let max = user_keywords.get('max') || Number.MAX_SAFE_INTEGER;
-
-    for (const keyword of project_keywords) {
-        relevance += Math.min(max, user_keywords.get(keyword) || 0);
-    }
-
-    return relevance;
-}

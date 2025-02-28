@@ -1,7 +1,9 @@
 <% if (!cookiesBool) { %>
     <!-- Cookie Consent Popup -->
-    <div id="cookieConsent" class="alert alert-light shadow-lg position-fixed bottom-0 start-50 translate-middle-x w-75 text-center p-3 rounded"
-        style="max-width: 500px; z-index: 1050; background-color: rgba(255, 255, 255, 0.95); border: 1px solid #ddd;">
+    <div id="cookieConsent"
+        class="alert alert-light shadow-lg position-fixed bottom-0 start-50 translate-middle-x text-center p-3 rounded"
+        style="max-width: 600px; z-index: 1050; background-color: rgba(255, 255, 255, 0.95); border: 1px solid #ddd; opacity: 1; 
+        transition: opacity 0.5s ease-in-out;">
         <p class="mb-2">
             <%= __('cookies.content') %>
         </p>
@@ -20,16 +22,11 @@
             accept.addEventListener("click", () => {
                 fadeOut(cookiePopup);
                 setCookies(true);
-                
-                
             });
-
             // Handle Decline
             decline.addEventListener("click", () => {
                 fadeOut(cookiePopup);
                 setCookies(false);
-                
-                
             });
 
             function fadeOut(element) {
@@ -47,11 +44,11 @@
             }
         });
     </script>
-    <style>
+    <!-- <style>
         /* Set opacity to 1 and apply 0.5s transition effect when opacity changes*/
         #cookieConsent {
             opacity: 1;
             transition: opacity 0.5s ease-in-out;
         }
-    </style>
+    </style> -->
 <% } %>
