@@ -75,7 +75,7 @@ exports.searchProjects = async (req, res) => {
     try {
         const language = req.session.language || "en";
         const { keyword, location } = req.query;
-
+        console.log(location);
         // **Step 1: Load projects and embeddings**
         const allProjectsEmbeddingsDict = await fetchAllProjects();
 
