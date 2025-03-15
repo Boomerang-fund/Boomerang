@@ -18,22 +18,7 @@ const LocalStrategy = require("passport-local");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 console.timeEnd("Passport Import");
 
-console.time("Glove");
 
-let wordVectors = {};
-const glovePath = path.join(__dirname, "glove.6B.50d.txt");
-const data = fs.readFileSync(glovePath, "utf8").split("\n");
-    for (let line of data) {
-        let parts = line.split(" ");
-        let word = parts.shift(); // Extract the first word
-        let vector = parts.map(Number); // Convert the rest into numbers
-
-        if (vector.length > 0 && !vector.includes(NaN)) {
-            wordVectors[word] = vector;
-        }
-    }
-
-console.timeEnd("Glove");
 
 
 const ejsMate = require("ejs-mate");
