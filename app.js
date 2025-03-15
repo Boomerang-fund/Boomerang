@@ -1,6 +1,8 @@
 if (process.env.NODE_ENV !== "production") {
     require("dotenv").config();
 }
+const path = require("path");
+const fs = require("fs");
 
 console.time("Express Import");
 const express = require("express");
@@ -17,13 +19,10 @@ const GoogleStrategy = require("passport-google-oauth20").Strategy;
 console.timeEnd("Passport Import");
 
 console.time("Glove");
-const path = require("path");
-const fs = require("fs");
-let wordVectors = {};
-async function loadGloveModel(filePath) {
-    console.log("⏳ Loading GloVe Model...");
-    const data = fs.readFileSync(filePath, "utf8").split("\n");
 
+let wordVectors = {};
+const glovePath = path.join(__dirname, "glove.6B.50d.txt");
+const data = fs.readFileSync(glovePath, "utf8").split("\n");
     for (let line of data) {
         let parts = line.split(" ");
         let word = parts.shift(); // Extract the first word
@@ -34,10 +33,8 @@ async function loadGloveModel(filePath) {
         }
     }
 
-}
-const glovePath = path.join(__dirname, "glove.6B.50d.txt");
-loadGloveModel(glovePath)
 console.timeEnd("Glove");
+
 
 const ejsMate = require("ejs-mate");
 const session = require("express-session");
@@ -230,6 +227,7 @@ app.use(async (req, res, next) => {
         res.locals.error = req.flash("error");
 
         req.wordVectors = wordVectors; 
+        
 
         next();
     } catch (error) {

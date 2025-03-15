@@ -35,7 +35,7 @@
         "toggle": "Toggle navigation",
         "projects": "Projects",
         "search": "Search",
-        "searchPlaceholder": "Search projects",
+        "searchPlaceholder": "Search for a project (for now)",
         "startProject": "New project",
         "login": "Login",
         "dashboard": "My Dashboard",
@@ -44,16 +44,19 @@
         "logout": "Logout",
         "categories": {
             "technology": "Technology",
-            "artDesign": "Art & Design",
-            "filmVideo": "Film & Video",
-            "music": "Music",
-            "cookingFood": "Cooking & Food",
-            "writingPublishing": "Writing & Publishing",
+            "media": "Media",
             "gaming": "Gaming",
-            "healthWellness": "Health & Wellness",
+            "health": "Health",
             "education": "Education",
-            "socialImpact": "Social Impact"
+            "social": "Social",
+            "environment": "Environment",
+            "food": "Food",
+            "fashion": "Fashion",
+            "science": "Science",
+            "travel": "Travel",
+            "home": "Home"
         }
+
     },
     "drafts": {
         "heading": "Your Drafts",
@@ -184,7 +187,7 @@
         "allProjectsLink": "All projects"
     },
     "projectSearch": {
-        "heading": "Project Search",
+        "heading": "Showing Projects for {{query}}",
         "showMeLabel": "Show Me",
         "projectsIn": "projects in",
         "searchPlaceholder": "Search for a project...",
@@ -199,15 +202,17 @@
         "allCategories": "All Categories",
         "categories": {
             "technology": "Technology",
-            "artDesign": "Art & Design",
-            "filmVideo": "Film & Video",
-            "music": "Music",
-            "cookingFood": "Cooking & Food",
-            "writingPublishing": "Writing & Publishing",
+            "media": "Media",
             "gaming": "Gaming",
-            "healthWellness": "Health & Wellness",
+            "health": "Health",
             "education": "Education",
-            "socialImpact": "Social Impact"
+            "social": "Social",
+            "environment": "Environment",
+            "food": "Food",
+            "fashion": "Fashion",
+            "science": "Science",
+            "travel": "Travel",
+            "home": "Home"
         },
         "sortedBy": "sorted by",
         "sortMostRecent": "Most Recent",

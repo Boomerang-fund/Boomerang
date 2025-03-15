@@ -7,9 +7,9 @@ module.exports.projectSchema = Joi.object({
         title: Joi.string().required().messages({
             "string.empty": "Title is required.",
         }),
-        description: Joi.string().required().messages({
-            "string.empty": "Description is required.",
-        }),
+        // description: Joi.string().required().messages({
+        //     "string.empty": "Description is required.",
+        // }),
         location: Joi.string().required().messages({
             "string.empty": "Location is required.",
         }),

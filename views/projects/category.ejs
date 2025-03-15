@@ -4,7 +4,7 @@
 
 <div class="container mt-5">
     <h1 class="text-center">
-        <%= __('categoryProjects.heading', { category: category }) %>
+        <%= __('categoryProjects.heading', { category: __('navbar.categories.' + category) }) %>
     </h1>
     <% if (projects.length> 0) { %>
     <div class="row">

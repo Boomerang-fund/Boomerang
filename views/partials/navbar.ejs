@@ -64,9 +64,9 @@
                 <a class="nav-link" href="/projects"
                     ><%= __('navbar.projects') %></a
                 >
-                <a class="nav-link" href="/search"
+                <!-- <a class="nav-link" href="/search"
                     ><%= __('navbar.search') %></a
-                >
+                > -->
             </div>
 
             <!-- Categories Dropdown for Mobile -->
@@ -145,10 +145,18 @@
                     <li>
                         <a
                             class="dropdown-item"
+                            href="/projects/category/Environmental"
+                            ><%= __('navbar.categories.environmental') %></a
+                        >
+                    </li>
+                    <li>
+                        <a
+                            class="dropdown-item"
                             href="/projects/category/Social%20Impact"
                             ><%= __('navbar.categories.socialImpact') %></a
                         >
                     </li>
+                    
                 </ul>
             </div>
 
@@ -162,7 +170,7 @@
                 <div class="position-relative w-100">
                     <input
                         type="text"
-                        name="keyword"
+                        name="query"
                         class="form-control shadow-sm"
                         placeholder="<%= __('navbar.searchPlaceholder') %>"
                         required
@@ -326,110 +334,117 @@
 <!-- Category Links -->
 <div class="container-fluid bg-light py-2">
     <div class="container d-flex justify-content-center">
-        <ul
-            class="nav nav-pills"
-            style="flex-wrap: nowrap; overflow-x: auto; white-space: nowrap"
-        >
-            <li class="nav-item mx-2">
-                <a
-                    class="nav-link category-link"
-                    href="/projects/category/Technology"
-                    ><%= __('navbar.categories.technology') %></a
-                >
+        <ul class="nav nav-pills">
+            <li class="nav-item">
+                <a class="nav-link category-link" href="/projects/category/technology">
+                    <%= __('navbar.categories.technology') %>
+                </a>
             </li>
-            <li class="nav-item mx-2">
-                <a
-                    class="nav-link category-link"
-                    href="/projects/category/Art%20%26%20Design"
-                    ><%= __('navbar.categories.artDesign') %></a
-                >
+            <li class="nav-item">
+                <a class="nav-link category-link" href="/projects/category/media">
+                    <%= __('navbar.categories.media') %>
+                </a>
             </li>
-            <li class="nav-item mx-2">
-                <a
-                    class="nav-link category-link"
-                    href="/projects/category/Film%20%26%20Video"
-                    ><%= __('navbar.categories.filmVideo') %></a
-                >
+            <li class="nav-item">
+                <a class="nav-link category-link" href="/projects/category/gaming">
+                    <%= __('navbar.categories.gaming') %>
+                </a>
             </li>
-            <li class="nav-item mx-2">
-                <a
-                    class="nav-link category-link"
-                    href="/projects/category/Music"
-                    ><%= __('navbar.categories.music') %></a
-                >
+            <li class="nav-item">
+                <a class="nav-link category-link" href="/projects/category/health">
+                    <%= __('navbar.categories.health') %>
+                </a>
             </li>
-            <li class="nav-item mx-2">
-                <a
-                    class="nav-link category-link"
-                    href="/projects/category/Cooking%20%26%20Food"
-                    ><%= __('navbar.categories.cookingFood') %></a
-                >
+            <li class="nav-item">
+                <a class="nav-link category-link" href="/projects/category/education">
+                    <%= __('navbar.categories.education') %>
+                </a>
             </li>
-            <li class="nav-item mx-2">
-                <a
-                    class="nav-link category-link"
-                    href="/projects/category/Writing%20%26%20Publishing"
-                    ><%= __('navbar.categories.writingPublishing') %></a
-                >
+            <li class="nav-item">
+                <a class="nav-link category-link" href="/projects/category/social">
+                    <%= __('navbar.categories.social') %>
+                </a>
             </li>
-            <li class="nav-item mx-2">
-                <a
-                    class="nav-link category-link"
-                    href="/projects/category/Gaming"
-                    ><%= __('navbar.categories.gaming') %></a
-                >
+            <li class="nav-item">
+                <a class="nav-link category-link" href="/projects/category/environment">
+                    <%= __('navbar.categories.environment') %>
+                </a>
             </li>
-            <li class="nav-item mx-2">
-                <a
-                    class="nav-link category-link"
-                    href="/projects/category/Health%20%26%20Wellness"
-                    ><%= __('navbar.categories.healthWellness') %></a
-                >
+            <li class="nav-item">
+                <a class="nav-link category-link" href="/projects/category/food">
+                    <%= __('navbar.categories.food') %>
+                </a>
             </li>
-            <li class="nav-item mx-2">
-                <a
-                    class="nav-link category-link"
-                    href="/projects/category/Education"
-                    ><%= __('navbar.categories.education') %></a
-                >
+            <li class="nav-item">
+                <a class="nav-link category-link" href="/projects/category/fashion">
+                    <%= __('navbar.categories.fashion') %>
+                </a>
             </li>
-            <li class="nav-item mx-2">
-                <a
-                    class="nav-link category-link"
-                    href="/projects/category/Social%20Impact"
-                    ><%= __('navbar.categories.socialImpact') %></a
-                >
+            <li class="nav-item">
+                <a class="nav-link category-link" href="/projects/category/science">
+                    <%= __('navbar.categories.science') %>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link category-link" href="/projects/category/travel">
+                    <%= __('navbar.categories.travel') %>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link category-link" href="/projects/category/home">
+                    <%= __('navbar.categories.home') %>
+                </a>
             </li>
         </ul>
     </div>
 </div>
 
-<!-- Inline CSS -->
+<!-- Improved CSS -->
 <style>
     .nav-pills {
-        justify-content: center; /* Center the links */
-        flex-wrap: nowrap; /* Prevent wrapping */
-        overflow-x: auto; /* Enable horizontal scrolling if necessary */
-        white-space: nowrap; /* Keep all items on a single line */
-    }
-
-    .nav-pills .nav-link {
-        font-size: 14px; /* Smaller font size for compact layout */
-        color: black; /* Default color */
-        text-decoration: none; /* Remove underline */
-        font-weight: 500; /* Slightly bold for better readability */
-        transition: color 0.3s ease; /* Smooth hover effect */
-    }
-
-    .nav-pills .nav-link:hover {
-        color: blue; /* Change color on hover */
+        display: flex;
+        justify-content: center; /* Center items */
+        flex-wrap: wrap; /* Allow categories to wrap if needed */
+        overflow-x: auto;
+        white-space: nowrap;
+        padding: 0; /* Remove extra padding */
+        max-width: 100%; /* Ensures it fits within the container */
     }
 
     .nav-item {
-        margin-left: 0.3rem; /* Adjust margins for better spacing */
-        margin-right: 0.3rem;
+        flex: 1 1 auto; /* Ensures flexible, even spacing */
+        text-align: center; /* Centers text */
+        min-width: 80px; /* Ensures a minimum width per category */
+    }
+
+    .nav-pills .nav-link {
+        font-size: 14px;
+        color: black;
+        text-decoration: none;
+        font-weight: 500;
+        transition: color 0.3s ease;
+        padding: 8px 12px; /* Adjusted for better spacing */
+    }
+
+    .nav-pills .nav-link:hover {
+        color: blue;
+    }
+
+    /* Make navbar scrollable on small screens */
+    @media (max-width: 768px) {
+        .nav-pills {
+            justify-content: flex-start; /* Align to the left on smaller screens */
+            overflow-x: auto; /* Allow horizontal scrolling */
+        }
+
+        .nav-item {
+            flex: 0 0 auto; /* Prevents excessive stretching */
+        }
     }
 </style>
+
+
+
 
 <script src="/javascripts/setLanguagesAndCurrencies.js"></script>
 <script src="/javascripts/setCookies.js"></script>

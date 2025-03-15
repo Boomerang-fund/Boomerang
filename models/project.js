@@ -104,17 +104,22 @@ const ProjectSchema = new Schema(
             {
                 type: String,
                 enum: [
-                    "Technology",
-                    "Art & Design",
-                    "Film & Video",
-                    "Music",
-                    "Cooking & Food",
-                    "Writing & Publishing",
-                    "Gaming",
-                    "Health & Wellness",
-                    "Education",
-                    "Social Impact",
-                ], // Restrict to predefined categories
+                    "technology",
+                    "media",
+                    "gaming",
+                    "health",
+                    "education",
+                    "social",
+                    "environment",
+                    "food",
+                    "fashion",
+                    "science",
+                    "travel",
+                    "home"
+                ],
+                
+                required: true                
+                 // Restrict to predefined categories
             },
         ],
         

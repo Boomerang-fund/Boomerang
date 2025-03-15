@@ -217,6 +217,7 @@ async function translate_text(text, availableLanguages) {
 }
 
 module.exports.showProject = async (req, res) => {
+    
     try {
         const project = await Project.findById(req.params.id)
             .populate({
@@ -296,7 +297,7 @@ module.exports.getProjectsByCategory = async (req, res) => {
         const projects = await Project.find({
             categories: category,
         });
-
+        
         const transformedProjects = projects.map((project) => ({
             _id: project._id,
             titleText: project.title.get(language) || project.title.get("en"),

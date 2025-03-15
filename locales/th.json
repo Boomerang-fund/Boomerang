@@ -35,7 +35,7 @@
         "toggle": "สลับการนำทาง",
         "projects": "โครงการ",
         "search": "ค้นหา",
-        "searchPlaceholder": "ค้นหาโปรเจ็กต์",
+        "searchPlaceholder": "ค้นหาโครงการ (ตอนนี้)",
         "startProject": "โครงการใหม่",
         "login": "ล็อกอิน",
         "dashboard": "แดชบอร์ดของฉัน",
@@ -44,16 +44,20 @@
         "logout": "ออกจากระบบ",
         "categories": {
             "technology": "เทคโนโลยี",
-            "artDesign": "ศิลปะและการออกแบบ",
-            "filmVideo": "ภาพยนตร์และวิดีโอ",
-            "music": "ดนตรี",
-            "cookingFood": "อาหาร",
-            "writingPublishing": "งานเขียน",
-            "gaming": "เกมและอีสปอร์ต",
-            "healthWellness": "สุขภาพและความงาม",
+            "media": "สื่อ",
+            "gaming": "เกม",
+            "health": "สุขภาพ",
             "education": "การศึกษา",
-            "socialImpact": "การพัฒนาสังคม"
+            "social": "สังคม",
+            "environment": "สิ่งแวดล้อม",
+            "food": "อาหาร",
+            "fashion": "แฟชั่น",
+            "science": "วิทยาศาสตร์",
+            "travel": "การท่องเที่ยว",
+            "home": "บ้าน"
         }
+
+
     },
     "drafts": {
         "heading": "ร่างของคุณ",
@@ -181,7 +185,7 @@
         "allProjectsLink": "โปรเจ็กต์ทั้งหมด"
     },
     "projectSearch": {
-        "heading": "ค้นหาโปรเจ็กต์",
+        "heading": "กำลังแสดงโครงการสำหรับ {{query}}",
         "showMeLabel": "แสดงให้ฉันดู",
         "projectsIn": "โครงการใน",
         "searchPlaceholder": "ค้นหาโปรเจ็กต์...",
@@ -196,15 +200,17 @@
         "allCategories": "หมวดหมู่ทั้งหมด",
         "categories": {
             "technology": "เทคโนโลยี",
-            "artDesign": "ศิลปะและการออกแบบ",
-            "filmVideo": "ภาพยนตร์และวิดีโอ",
-            "music": "ดนตรี",
-            "cookingFood": "อาหาร",
-            "writingPublishing": "งานเขียน",
-            "gaming": "เกมและอีสปอร์ต",
-            "healthWellness": "สุขภาพและความงาม",
+            "media": "สื่อ",
+            "gaming": "เกม",
+            "health": "สุขภาพ",
             "education": "การศึกษา",
-            "socialImpact": "การพัฒนาสังคม"
+            "social": "สังคม",
+            "environment": "สิ่งแวดล้อม",
+            "food": "อาหาร",
+            "fashion": "แฟชั่น",
+            "science": "วิทยาศาสตร์",
+            "travel": "การท่องเที่ยว",
+            "home": "บ้าน"
         },
         "sortedBy": "จัดเรียงตาม",
         "sortMostRecent": "ล่าสุด",
