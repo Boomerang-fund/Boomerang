@@ -24,6 +24,7 @@ module.exports.validateAndFixProject = async (req, res, next) => {
     const { error } = projectSchema.validate(req.body);
     console.log(req.body);
 
+    let msg = undefined;
     let fixedErrors = false;
     if (error) {
         for (const detail of error.details) {
@@ -36,13 +37,18 @@ module.exports.validateAndFixProject = async (req, res, next) => {
                 }
             }
 
-            // Checking and fixing project.description errros
-            if (detail.path.length === 2 && detail.path[0] === "project" && detail.path[1] == "description") {
+            // Checking and fixing project.description errors
+            if (detail.path.length === 2 && detail.path[0] === "project" && detail.path[1] === "description") {
                 if (req.body.project.descriptionText) {
                     req.body.project.description = await translate_text(req.body.project.descriptionText);
                     fixedErrors = true;
                     console.log("DESCRIPTION TRANSLATED");
                 }
+            }
+
+            // Renaming project.geometry errors
+            if (detail.path.length === 2 && detail.path[0] === "project" && detail.path[1] === "geometry") {
+                msg = error.details.map((el) => "Please enter a valid location").join(",");
             }
         }
 
@@ -50,7 +56,7 @@ module.exports.validateAndFixProject = async (req, res, next) => {
             return module.exports.validateAndFixProject(req, res, next);
         }
 
-        const msg = error.details.map((el) => el.message).join(",");
+        if (!msg) {msg = error.details.map((el) => el.message).join(",");}
         throw new ExpressError(msg, 400);
     } else {
         next();

@@ -173,29 +173,6 @@ module.exports.createProject = async (req, res, next) => {
     }
 };
 
-async function translate_text(text, availableLanguages) {
-    let textMap = new Map();
-
-    for (let language of availableLanguages) {
-        if (textMap.has(language)) {
-            continue;
-        }
-
-        const [translation, metadata] = await translate.translate(
-            text,
-            language
-        );
-        textMap.set(language, translation);
-
-        const detectedLanguage = metadata.detectedSourceLanguage;
-        if (!textMap.has(detectedLanguage)) {
-            textMap.set(detectedLanguage, text);
-        }
-    }
-
-    return textMap;
-}
-
 module.exports.showProject = async (req, res) => {
     
     try {

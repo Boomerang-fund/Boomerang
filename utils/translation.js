@@ -34,10 +34,6 @@ async function translate_project(req, res, next) {
         req.body.project.description = await translate_text(req.body.project.descriptionText, availableLanguages);
     }
 
-    console.log(req.body.project.title); // TODO: REMOVE
-    console.log(req.body.project.description); // TODO: REMOVE
-    console.log(); // TODO: REMOVE
-
     next();
 }
 
