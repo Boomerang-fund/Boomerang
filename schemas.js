@@ -1,20 +1,27 @@
 const Joi = require("joi");
+const { availableCurrencies } = require("./utils/constants");
 
 // Schema for project validation
 module.exports.projectSchema = Joi.object({
     draftId: Joi.string().optional(), // Optional draft ID for updating drafts
     project: Joi.object({
-        title: Joi.string().required().messages({
+        title: Joi.object().instance(Map).required().messages({
+            "any.required": "Title is required and must be a Map.",
+        }),
+        titleText: Joi.string().required().messages({
             "string.empty": "Title is required.",
         }),
-        // description: Joi.string().required().messages({
-        //     "string.empty": "Description is required.",
-        // }),
+        description: Joi.object().instance(Map).required().messages({
+            "any.required": "Title is required and must be a Map.",
+        }),
+        descriptionText: Joi.string().required().messages({
+            "string.empty": "Description is required.",
+        }),
         location: Joi.string().required().messages({
             "string.empty": "Location is required.",
         }),
         currency: Joi.string()
-            .valid("USD", "THB") // Validate allowed currencies
+            .valid(...availableCurrencies)
             .required()
             .messages({
                 "string.empty": "Currency is required.",
@@ -34,8 +41,7 @@ module.exports.projectSchema = Joi.object({
             .valid("active", "successful", "failed", "canceled") // Only these statuses are valid
             .default("active")
             .messages({
-                "any.only":
-                    "Status must be one of: active, successful, failed, canceled.",
+                "any.only": "Status must be one of: active, successful, failed, canceled.",
             }),
         keywords: Joi.array()
             .items(Joi.string().max(30)) // Each keyword can have a max length of 30
@@ -53,19 +59,6 @@ module.exports.projectSchema = Joi.object({
         }),
     deleteImages: Joi.array().items(Joi.string()).optional(), // Validate optional image deletions
 });
-
-// Middleware for validating project data
-module.exports.validateProject = (req, res, next) => {
-    const { error } = module.exports.projectSchema.validate(req.body, {
-        abortEarly: false, // Collect all validation errors
-    });
-    if (error) {
-        const msg = error.details.map((el) => el.message).join(", "); // Aggregate error messages
-        next(new ExpressError(msg, 400)); // Throw validation error
-    } else {
-        next(); // Continue to the next middleware if validation passes
-    }
-};
 
 module.exports.commentSchema = Joi.object({
     comment: Joi.object({

@@ -95,30 +95,10 @@ module.exports.renderNewForm = async (req, res) => {
     });
 };
 
-// TODO: change where the input text is being stored from project.title to project.titleText
 module.exports.createProject = async (req, res, next) => {
     try {
         const { draftId } = req.body; // Retrieve draftId from the request
         let project;
-
-        // Ensure `title` and `description` are stored as `Map` in the required format
-        if (
-            req.body.project.title &&
-            typeof req.body.project.title === "string"
-        ) {
-            req.body.project.title = new Map([["en", req.body.project.title]]);
-            req.body.project.titleText = req.body.project.title.get("en"); // Set titleText
-        }
-        if (
-            req.body.project.description &&
-            typeof req.body.project.description === "string"
-        ) {
-            req.body.project.description = new Map([
-                ["en", req.body.project.description],
-            ]);
-            req.body.project.descriptionText =
-                req.body.project.description.get("en"); // Set descriptionText
-        }
 
         if (draftId) {
             // Update an existing draft

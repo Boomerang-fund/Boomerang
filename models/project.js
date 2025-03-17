@@ -27,6 +27,19 @@ const ProjectSchema = new Schema(
                 return !this.get("isDraft");
             },
         },
+        description: {
+            type: Map,
+            of: String,
+            required: function () {
+                return !this.get("isDraft");
+            },
+        },
+        descriptionText: {
+            type: String,
+            required: function () {
+                return !this.get("isDraft");
+            },
+        },
         images: [ImageSchema],
         geometry: {
             type: {
@@ -43,19 +56,6 @@ const ProjectSchema = new Schema(
                 required: function () {
                     return !this.get("isDraft");
                 },
-            },
-        },
-        description: {
-            type: Map,
-            of: String,
-            required: function () {
-                return !this.get("isDraft");
-            },
-        },
-        descriptionText: {
-            type: String,
-            required: function () {
-                return !this.get("isDraft");
             },
         },
         currency: {
@@ -103,29 +103,15 @@ const ProjectSchema = new Schema(
         categories: [
             {
                 type: String,
-                enum: [
-                    "technology",
-                    "media",
-                    "gaming",
-                    "health",
-                    "education",
-                    "social",
-                    "environment",
-                    "food",
-                    "fashion",
-                    "science",
-                    "travel",
-                    "home"
-                ],
-                
-                required: true                
-                 // Restrict to predefined categories
+                enum: ["technology", "media", "gaming", "health", "education", "social", "environment", "food", "fashion", "science", "travel", "home"],
+
+                required: true,
+                // Restrict to predefined categories
             },
         ],
-        
         isDraft: { type: Boolean, default: false },
         lastSavedAt: { type: Date, default: Date.now },
-        embedding: [Number]
+        embedding: [Number],
     },
     opts
 );

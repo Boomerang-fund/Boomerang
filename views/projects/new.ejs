@@ -19,11 +19,11 @@
                                 <%= __('createProject.step1.heading') %>
                             </h2>
                             <div class="mb-3">
-                                <label class="form-label" for="title">
+                                <label class="form-label" for="titleText">
                                     <%= __('createProject.step1.titleLabel') %>
                                 </label>
-                                <input class="form-control" type="text" id="title" name="project[title]"
-                                    value="<%= draft ? draft.title : '' %>" required />
+                                <input class="form-control" type="text" id="titleText" name="project[titleText]"
+                                    value="<%= draft ? draft.titleText : '' %>" required />
                             </div>
                             <div class="mb-3">
                                 <label class="form-label" for="location">
@@ -52,11 +52,11 @@
                                 <input type="file" name="image" id="image" multiple />
                             </div>
                             <div class="mb-3">
-                                <label class="form-label" for="description">
+                                <label class="form-label" for="descriptionText">
                                     <%= __('createProject.step2.descriptionLabel') %>
                                 </label>
-                                <textarea class="form-control" id="description" name="project[description]"
-                                    required><%= draft ? draft.description : '' %></textarea>
+                                <textarea class="form-control" id="descriptionText" name="project[descriptionText]"
+                                    required><%= draft ? draft.descriptionText : '' %></textarea>
                             </div>
 
                             <% if (draft && draft.images && draft.images.length> 0) { %>
@@ -181,9 +181,9 @@
             const draftId = document.querySelector('input[name="draftId"]')?.value;
             if (draftId) formData.append("draftId", draftId);
     
-            formData.append("project[title]", document.getElementById("title").value);
+            formData.append("project[titleText]", document.getElementById("titleText").value);
             formData.append("project[location]", document.getElementById("location").value);
-            formData.append("project[description]", document.getElementById("description").value);
+            formData.append("project[descriptionText]", document.getElementById("descriptionText").value);
             formData.append("project[fundingGoal]", document.getElementById("fundingGoal").value);
             formData.append("project[currency]", document.getElementById("currency").value);
             formData.append("project[deadline]", document.getElementById("deadline").value);

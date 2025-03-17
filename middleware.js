@@ -2,6 +2,7 @@ const { projectSchema, commentSchema } = require("./schemas.js");
 const ExpressError = require("./utils/ExpressError");
 const Project = require("./models/project");
 const Comment = require("./models/comment");
+const { translate_text } = require("./utils/translation");
 
 module.exports.isLoggedIn = (req, res, next) => {
     if (!req.isAuthenticated()) {
@@ -19,9 +20,36 @@ module.exports.storeReturnTo = (req, res, next) => {
     next();
 };
 
-module.exports.validateProject = (req, res, next) => {
+module.exports.validateAndFixProject = async (req, res, next) => {
     const { error } = projectSchema.validate(req.body);
+    console.log(req.body);
+
+    let fixedErrors = false;
     if (error) {
+        for (const detail of error.details) {
+            // Checking and fixing project.title errors
+            if (detail.path.length === 2 && detail.path[0] === "project" && detail.path[1] === "title") {
+                if (req.body.project.titleText) {
+                    req.body.project.title = await translate_text(req.body.project.titleText);
+                    fixedErrors = true;
+                    console.log("TITLE TRANSLATED");
+                }
+            }
+
+            // Checking and fixing project.description errros
+            if (detail.path.length === 2 && detail.path[0] === "project" && detail.path[1] == "description") {
+                if (req.body.project.descriptionText) {
+                    req.body.project.description = await translate_text(req.body.project.descriptionText);
+                    fixedErrors = true;
+                    console.log("DESCRIPTION TRANSLATED");
+                }
+            }
+        }
+
+        if (fixedErrors) {
+            return module.exports.validateAndFixProject(req, res, next);
+        }
+
         const msg = error.details.map((el) => el.message).join(",");
         throw new ExpressError(msg, 400);
     } else {

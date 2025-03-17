@@ -1,13 +1,12 @@
 const Project = require("../models/project");
 const categories = require("../utils/categories").categories;
-const { pipeline } = require("@xenova/transformers");
 
 let embedder;
 
-// **1️⃣ Load Transformer Model (Only Once)**
 async function loadTransformerModel() {
     if (!embedder) {
-        embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+        const { pipeline } = await import("@xenova/transformers");
+        embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
     }
 }
 
