@@ -245,11 +245,30 @@ module.exports.getProjectsByCategory = async (req, res) => {
     const { category } = req.params;
     const language = req.session.language || defaultLanguage;
     try {
-        // Find projects in the specified category
+        // ChatGPT magic to find projects in the specified category by checking if queried category matches any key of the categories map in each projects
+        // Don't ask how this works 
         const projects = await Project.find({
-            categories: { $in: [category] },
+            $expr: {
+                $gt: [
+                    {
+                        $size: {
+                            $filter: {
+                                input: { $objectToArray: "$categories" }, // Convert object to array
+                                as: "cat",
+                                cond: {
+                                    $eq: [
+                                        { $toLower: "$$cat.k" }, // Convert stored key to lowercase
+                                        category.toLowerCase() // Convert user input to lowercase
+                                    ]
+                                }
+                            }
+                        }
+                    },
+                    0
+                ]
+            },
             isDraft: false
-        });
+        });        
         // console.log("📌 Fetched Projects:", projects);
         
         const transformedProjects = getDisplayTitleAndDescription(projects,language);

@@ -239,7 +239,7 @@
         "deleteComment": "Delete"
     },
     "categoryProjects": {
-        "heading": "Projects in {{category}}",
+        "heading": "Showing {{count}} projects belonging to {{category}}",
         "location": "Location",
         "deadline": "Deadline",
         "viewButton": "View Project",

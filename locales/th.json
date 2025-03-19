@@ -240,7 +240,7 @@
         "deleteComment": "ลบ"
     },
     "categoryProjects": {
-        "heading": "โครงการในหมวดหมู่ {{category}}",
+        "heading": "กำลังแสดง {{count}} โครงการที่อยู่ในหมวดหมู่ {{category}}",
         "location": "สถานที่",
         "deadline": "กำหนดส่ง",
         "viewButton": "ดูโครงการ",
