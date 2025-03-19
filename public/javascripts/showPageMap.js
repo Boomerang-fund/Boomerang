@@ -1,4 +1,4 @@
-mapboxgl.accessToken = mapToken;
+mapboxgl.accessToken = mapboxToken;
 
 const map = new mapboxgl.Map({
     container: "map", // container ID
@@ -13,7 +13,7 @@ new mapboxgl.Marker()
     .setLngLat(project.geometry.coordinates)
     .setPopup(
         new mapboxgl.Popup({ offset: 25 }).setHTML(
-            `<h3>${project.title}</h3><p>${project.location}</p>`
+            `<h3>${displayTitle}</h3><p>${project.location}</p>`
         )
     )
     .addTo(map);

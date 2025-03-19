@@ -7,8 +7,9 @@ const multer = require("multer");
 const { storage } = require("../cloudinary");
 const upload = multer({ storage });
 const { getProjectsByCategory } = require("../controllers/projects");
-
+const { translate_project } = require("../utils/translation");
 const catchAsync = require("../utils/catchAsync");
+const {defaultLanguage, defaultCurrency } = require("../utils/constants");
 
 router.route("/")
     .get(catchAsync(projects.index))
@@ -30,12 +31,19 @@ router.get("/my-projects",
     isLoggedIn, 
     async (req, res) => {
         try {
-            const language = req.session.language || "th";
-            const projects = await Project.find({author: req.user._id, isDraft: false});
+            const language = req.session.language || defaultLanguage;
+            const preProcessedProjects = await Project.find({author: req.user._id, isDraft: false});
             const drafts = await Project.find({author: req.user._id, isDraft: true});
-
+            const projects = preProcessedProjects.map(project => ({
+                ...project.toObject(),
+                displayTitle: project.title?.get(language) || project.title?.get(defaultLanguage),
+                displayDescription: project.description?.get(language) || project.description?.get(defaultLanguage),
+            }));
+            
+            
             res.render("projects/my-projects", { projects, drafts, language });
         } catch (error) {
+            console.error("❌ Error in /my-projects route:", error);
             req.flash("error", "Unable to load your projects.");
             res.redirect("/projects");
         }
@@ -47,15 +55,18 @@ router.get("/category/:category",
     getProjectsByCategory
 );
 
-router.post("/save-draft",
+
+
+router.post(
+    "/save-draft",
     isLoggedIn,
     upload.array("image"), // Process file uploads
     (req, res, next) => {
-        console.log("Uploaded Files in Route:", req.files); // Debug log
-        console.log("Draft Data in Route:", req.body); // Debug log
+        
         next();
     },
-    catchAsync(projects.saveDraft)
+    catchAsync(translate_project),  // 🔥 Add translation middleware here
+    catchAsync(projects.saveDraft) // Now saveDraft runs AFTER translation
 );
 
 // Delete a Draft

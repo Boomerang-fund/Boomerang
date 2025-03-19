@@ -17,16 +17,16 @@
             <img
                 src="<%= project.images && project.images[0] ? project.images[0].url : 'default-image-url.jpg' %>"
                 class="card-img-top"
-                alt="<%= project.titleText %>"
+                alt="<%= project.displayTitle %>"
             />
             <div class="card-body">
                 <h5 class="card-title">
-                    <%= project.titleText ? project.titleText :
+                    <%= project.displayTitle ? project.displayTitle :
                     __('myProjects.untitledProject') %>
                 </h5>
                 <p class="card-text">
-                    <%= project.descriptionText ?
-                    project.descriptionText.substring(0, 100) :
+                    <%= project.displayDescription ?
+                    project.displayDescription.substring(0, 100) :
                     __('myProjects.noDescription') %>...
                 </p>
                 <p class="card-text">
@@ -73,12 +73,12 @@
             />
             <div class="card-body">
                 <h5 class="card-title">
-                    <%= draft.title && draft.title.get('en') ?
-                    draft.title.get('en') : __('myProjects.untitledDraft') %>
+                    <%= draft.originalTitle ? draft.originalTitle :
+                    __('myProjects.untitledDraft') %>
+                    
                 </h5>
                 <p class="card-text">
-                    <%= draft.description && draft.description.get('en') ?
-                    draft.description.get('en').substring(0, 100) :
+                    <%= draft.originalDescription ? draft.originalDescription :
                     __('myProjects.noDescription') %>
                 </p>
                 <p class="card-text">

@@ -8,13 +8,13 @@ module.exports.projectSchema = Joi.object({
         title: Joi.object().instance(Map).required().messages({
             "any.required": "Title is required and must be a Map.",
         }),
-        titleText: Joi.string().required().messages({
+        originalTitle: Joi.string().required().messages({
             "string.empty": "Title is required.",
         }),
         description: Joi.object().instance(Map).required().messages({
             "any.required": "Title is required and must be a Map.",
         }),
-        descriptionText: Joi.string().required().messages({
+        originalDescription: Joi.string().required().messages({
             "string.empty": "Description is required.",
         }),
         location: Joi.string().required().messages({

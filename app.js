@@ -41,6 +41,9 @@ const currencyRoutes = require("./routes/currency");
 const cookiesRoutes = require("./routes/cookies");
 const i18n = require("i18n");
 
+const {availableLanguages, availableCurrencies, defaultLanguage, defaultCurrency } = require("./utils/constants");
+
+
 console.log("IMPORTS COMPLETED");
 
 mongoose
@@ -137,8 +140,7 @@ passport.use(
 passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
-const availableLanguages = ["en", "th"];
-const availableCurrencies = ["USD", "THB"];
+
 
 i18n.configure({
     directory: path.join(__dirname, "locales"),
@@ -167,8 +169,8 @@ app.use(async (req, res, next) => {
         // user.__ is the actual data that is saved. This saved data is then put into req.session.__ (Only save to this & load from this into req.session.__)
 
         // Defaults to chosen value unless session or user data exists
-        let language = "th";
-        let currency = "THB";
+        let language = defaultLanguage;
+        let currency = defaultCurrency;
         if (req.session.cookiesBool) {
             if (req.session.language) {language = req.session.language;}
             if (req.session.currency) {currency = req.session.currency;}

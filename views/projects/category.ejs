@@ -9,16 +9,17 @@
     <% if (projects.length> 0) { %>
     <div class="row">
         <% projects.forEach(project=> { %>
+            
         <div class="col-md-4 mb-4">
             <div class="card">
                 <img
                     src="<%= project.images && project.images[0] ? project.images[0].url : 'default-image-url.jpg' %>"
                     class="card-img-top"
-                    alt="<%= project.titleText %>"
+                    alt="<%= project.displayTitle %>"
                 />
                 <div class="card-body">
-                    <h5 class="card-title"><%= project.titleText %></h5>
-                    <p class="card-text"><%= project.descriptionText %></p>
+                    <h5 class="card-title"><%= project.displayTitle %></h5>
+                    <p class="card-text"><%= project.displayDescription %></p>
                     <p class="card-text">
                         <small class="text-muted">
                             <%= __('categoryProjects.location') %>: <%=

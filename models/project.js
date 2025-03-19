@@ -17,11 +17,12 @@ const ProjectSchema = new Schema(
         title: {
             type: Map,
             of: String,
-            required: function () {
-                return !this.get("isDraft"); // Use this.get() for safe access
-            },
+            required: false
+            // required: function () {
+            //     return !this.get("isDraft"); // Use this.get() for safe access
+            // },
         },
-        titleText: {
+        originalTitle: {
             type: String,
             required: function () {
                 return !this.get("isDraft");
@@ -34,7 +35,7 @@ const ProjectSchema = new Schema(
                 return !this.get("isDraft");
             },
         },
-        descriptionText: {
+        originalDescription: {
             type: String,
             required: function () {
                 return !this.get("isDraft");

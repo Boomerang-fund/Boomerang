@@ -9,8 +9,9 @@
             <!-- Multi-step form container -->
             <form id="new-project-form" method="POST" action="/projects" enctype="multipart/form-data" novalidate>
                 <!-- Include the hidden draftId field if resuming a draft -->
+                <input type="hidden" name="draftId" id="draftId" value="<%= draft ? draft._id : '' %>">
                 <% if (draft) { %>
-                    <input type="hidden" name="draftId" value="<%= draft._id %>" />
+                    
                     <% } %>
 
                         <!-- Step 1: Basics -->
@@ -19,19 +20,20 @@
                                 <%= __('createProject.step1.heading') %>
                             </h2>
                             <div class="mb-3">
-                                <label class="form-label" for="titleText">
+                                <label class="form-label" for="originalTitle">
                                     <%= __('createProject.step1.titleLabel') %>
                                 </label>
-                                <input class="form-control" type="text" id="titleText" name="project[titleText]"
-                                    value="<%= draft ? draft.titleText : '' %>" required />
+                                <input class="form-control" type="text" id="originalTitle" name="project[originalTitle]"
+                                    value="<%= draft ? draft.originalTitle : '' %>" required />
                             </div>
                             <div class="mb-3">
-                                <label class="form-label" for="location">
+                                <label class="form-label">
                                     <%= __('createProject.step1.locationLabel') %>
                                 </label>
-                                <input class="form-control" type="text" id="location" name="project[location]"
-                                    value="<%= draft ? draft.location : '' %>" required />
+                                <div id="geocoder-container"></div>
                             </div>
+                            <input type="hidden" id="location" name="project[location]" required>
+                            <input type="hidden" id="geometry" name="project[geometry]" required>
                             <button type="button" class="btn btn-primary" onclick="nextStep(2)">
                                 <%= __('createProject.nextButton') %>
                             </button>
@@ -52,11 +54,11 @@
                                 <input type="file" name="image" id="image" multiple />
                             </div>
                             <div class="mb-3">
-                                <label class="form-label" for="descriptionText">
+                                <label class="form-label" for="originalDescription">
                                     <%= __('createProject.step2.descriptionLabel') %>
                                 </label>
-                                <textarea class="form-control" id="descriptionText" name="project[descriptionText]"
-                                    required><%= draft ? draft.descriptionText : '' %></textarea>
+                                <textarea class="form-control" id="originalDescription" name="project[originalDescription]"
+                                    required><%= draft ? draft.originalDescription : '' %></textarea>
                             </div>
 
                             <% if (draft && draft.images && draft.images.length> 0) { %>
@@ -154,8 +156,7 @@
                 <%= __('createProject.allProjectsLink') %>
             </a>
         </div>
-    </div>
-
+    
     <script type="module">
         const categories = <%- categories %>; // Ensure categories is defined correctly as JSON.
     
@@ -174,16 +175,100 @@
             document.getElementById(`step-${step}`).style.display = "block";
             currentStep = step;
         }
+        function updateFlashMessage(message, type) {
+            const flashContainer = document.getElementById("flash-messages");
+
+            if (!flashContainer) {
+                console.error("❌ Flash message container not found!");
+                return;
+            }
+
+            // Determine Bootstrap class based on message type
+            const alertClass = type === "success" ? "alert-success" : "alert-danger";
+
+            // Create a new alert message (without close button)
+            const alertDiv = document.createElement("div");
+            alertDiv.className = `alert ${alertClass} alert-dismissible fade show`;
+            alertDiv.role = "alert";
+            alertDiv.innerHTML = `${message}`; // Removed close button
+
+            // Clear previous messages and insert the new one
+            flashContainer.innerHTML = "";
+            flashContainer.appendChild(alertDiv);
+
+            // Automatically fade out after 3 seconds
+            setTimeout(() => {
+                alertDiv.classList.remove("show"); // Start fade-out
+                alertDiv.classList.add("fade"); // Apply Bootstrap fade effect
+
+                // Remove alert from DOM after fade animation (0.5s)
+                setTimeout(() => {
+                    alertDiv.remove();
+                }, 500);
+            }, 3000);
+        }
+
+        mapboxgl.accessToken = "<%= mapBoxToken %>";
+        
+        const geocoder = new MapboxGeocoder({
+            accessToken: mapboxgl.accessToken,
+            types: 'place',
+            placeholder: 'Enter a city or place...',
+            mapboxgl: mapboxgl
+        });
     
+        // Generates another div with .mapboxgl-ctrl-geocoder
+        document.getElementById('geocoder-container').appendChild(geocoder.onAdd());
+        let locationSelected = false;
+        const geocoderInput = document.querySelector(".mapboxgl-ctrl-geocoder input");
+        if (geocoderInput) {
+            geocoderInput.value = "<%= draft ? draft.location : '' %>";
+            document.getElementById('location').value = "<%= draft ? draft.location : '' %>";
+            document.getElementById('geometry').value = '<%= JSON.stringify(draft ? draft.geometry.coordinates : []) %>';
+            locationSelected = true;
+            
+        }
+        
+        document.addEventListener("click", function (event) {
+            if (event.target === geocoderInput) {
+                geocoder.query(geocoderInput.value);
+                 // Trigger Mapbox search
+            }
+        }, { once: true }); // Event fires only once
+
+         // Track if a dropdown option was clicked
+
+        geocoderInput.addEventListener("input", function () {
+            locationSelected = false;
+        }); // Manual input detection
+
+        geocoder.on('result', function(e) {
+            document.getElementById('location').value = e.result.place_name;
+            document.getElementById('geometry').value = JSON.stringify(e.result.geometry.coordinates);
+            locationSelected = true;
+        });
+
         async function saveDraft() {
+            
+            if (document.querySelector(".mapboxgl-ctrl-geocoder input").value.trim() === "") {
+                console.log("⚠️ Empty location allowed. Setting location and geometry to blank.");
+                document.getElementById("location").value = "";
+                document.getElementById("geometry").value = "[]";
+            } 
+            else if (!locationSelected) {
+                updateFlashMessage("Please select a valid location from the dropdown before saving.", "error")
+                return; // Stop saving if no selection was made
+            }
             const formData = new FormData();
     
-            const draftId = document.querySelector('input[name="draftId"]')?.value;
+            const draftIdInput = document.querySelector('input[name="draftId"]');
+            let draftId = draftIdInput ? draftIdInput.value.trim() : "";
             if (draftId) formData.append("draftId", draftId);
-    
-            formData.append("project[titleText]", document.getElementById("titleText").value);
+            
+            formData.append("project[originalTitle]", document.getElementById("originalTitle").value);
+            formData.append("project[originalDescription]", document.getElementById("originalDescription").value);
             formData.append("project[location]", document.getElementById("location").value);
-            formData.append("project[descriptionText]", document.getElementById("descriptionText").value);
+            formData.append("project[geometry]", document.getElementById('geometry').value);
             formData.append("project[fundingGoal]", document.getElementById("fundingGoal").value);
             formData.append("project[currency]", document.getElementById("currency").value);
             formData.append("project[deadline]", document.getElementById("deadline").value);
@@ -208,15 +293,15 @@
                     method: "POST",
                     body: formData,
                 });
-    
-                if (response.ok) {
-                    const data = await response.json();
-                    alert("Draft saved successfully!");
+                const data = await response.json(); // Parse JSON response
+                console.log("📌 Full response data:", data);
+                if (data.success) {
+                    updateFlashMessage(data.message, "success"); // ✅ Update flash message dynamically
+                    draftIdInput.value = data.draftId;        
                 } else {
-                    const error = await response.json();
-                    console.error("Failed to save draft:", error);
-                    alert("Failed to save draft.");
+                    updateFlashMessage(data.message, "error");
                 }
+                
             } catch (error) {
                 console.error("Error saving draft:", error);
                 alert("Failed to save draft.");
@@ -298,4 +383,9 @@
         window.previousStep = previousStep;
         window.handleKeywordSelection = handleKeywordSelection;
         window.saveDraft = saveDraft;
+    </script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.min.js"></script>
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css" type="text/css">    
+    <script>
+        
     </script>

@@ -97,11 +97,12 @@
             <img
                 src="<%= project.images && project.images[0] ? project.images[0].url : 'https://res.cloudinary.com/dei5hbjfg/image/upload/v1730665603/Boomerang/ujp5lxrxohzvkutf5oos.jpg' %>"
                 class="card-img-top"
-                alt="<%= project.titleText %>"
+                alt="<%= project.displayTitle %>"
                 style="height: 180px; object-fit: cover"
             />
             <div class="card-body">
-                <h5 class="card-title"><%= project.titleText %></h5>
+                <h5 class="card-title"><%= project.displayTitle %></h5>
+                <p class="card-text"><%= project.displayDescription %></p>
                 <% if (currentUser) { %>
                 <form
                     action="/projects/<%= project._id %>/toggleSave"
@@ -299,11 +300,11 @@
             <img
                 src="<%= project.images && project.images[0] ? project.images[0].url : 'https://res.cloudinary.com/dei5hbjfg/image/upload/v1730665603/Boomerang/ujp5lxrxohzvkutf5oos.jpg' %>"
                 class="card-img-top"
-                alt="<%= project.titleText %>"
+                alt="<%= project.displayTitle %>"
                 style="height: 180px; object-fit: cover"
             />
             <div class="card-body">
-                <h5 class="card-title"><%= project.titleText %></h5>
+                <h5 class="card-title"><%= project.displayTitle %></h5>
                 <p class="card-text text-muted">
                     <small> <%= project.location %> </small>
                 </p>

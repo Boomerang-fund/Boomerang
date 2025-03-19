@@ -1,24 +1,10 @@
-const Project = require("../models/project");
-const Users = require("../models/user");
-const ApiFetch = require("../models/apiFetch");
-const mbxGeocoding = require("@mapbox/mapbox-sdk/services/geocoding");
-const mapBoxToken = process.env.MAPBOX_TOKEN;
-const geocoder = mbxGeocoding({ accessToken: mapBoxToken });
-const { cloudinary } = require("../cloudinary");
-
-const currencyToken = process.env.CURRENCY_TOKEN;
-const { categories } = require("../utils/categories.js"); // Import the categories data
-
-const {defaultLanguage, defaultCurrency } = require("../utils/constants");
-const { computeProjectEmbedding } = require("../utils/embedding");
-
 module.exports.index = async (req, res) => {
-    const language = req.session.language || defaultLanguage;
+    const language = req.session.language || "th"; // Default to 'en' if no language is set
     const user = await get_user(Users, req);
 
     // Fetch all projects
     const allProjects = await Project.find({});
-    const projects = getDisplayTitleAndDescription(allProjects, language);
+    const projects = mapTitleAndDescription(allProjects, language);
 
     // Fetch user's own projects if logged in
     let myProjects = [];
@@ -27,7 +13,7 @@ module.exports.index = async (req, res) => {
             author: req.user._id,
             isDraft: false, // Exclude drafts
         });
-        myProjects = getDisplayTitleAndDescription(userProjects, language);
+        myProjects = mapTitleAndDescription(userProjects, language);
     }
 
     // Convert projects to GeoJSON format
@@ -43,6 +29,7 @@ module.exports.index = async (req, res) => {
         res.render("projects/index", {
             geoJsonProjects,
             projects: publishedProjects,
+            // projects: projects.slice(0, 30), // Pass the top 30 projects
             myProjects, // Pass user's own projects
         });
     } catch (err) {
@@ -51,11 +38,11 @@ module.exports.index = async (req, res) => {
     }
 };
 
-function getDisplayTitleAndDescription(projects, language) {
+function mapTitleAndDescription(projects, language) {
     return projects.map((project) => ({
         ...project.toObject(), // Convert Mongoose model to plain object
-        displayTitle: project.title?.get(language) || project.title?.get(defaultLanguage) || "Untitled",
-        displayDescription: project.description?.get(language) || project.description?.get(defaultLanguage) || "No description available",
+        titleText: project.title?.get(language) || project.title?.get("en") || "Untitled",
+        descriptionText: project.description?.get(language) || project.description?.get("en") || "No description available",
     }));
 }
 
@@ -69,9 +56,9 @@ function mapGeoJSON(projects) {
                     coordinates: [0, 0], // Default coordinates
                 },
                 properties: {
-                    title: project.displayTitle,
-                    description: project.displayDescription,
-                    popUpMarkup: `<a href="/projects/${project._id}">${project.displayTitle}</a>`,
+                    title: project.titleText,
+                    description: project.descriptionText,
+                    popUpMarkup: `<a href="/projects/${project._id}">${project.titleText}</a>`,
                 },
             })),
         };
@@ -79,24 +66,23 @@ function mapGeoJSON(projects) {
 }
 
 module.exports.renderNewForm = async (req, res) => {
-    const { draftId } = req.query; // ✅ Get draftId from query params
+    const { draftId } = req.query;
     let draft = null;
 
     if (draftId) {
         draft = await Project.findById(draftId);
-        // if (!draft) {
-        //     req.flash("error", "Draft not found.");
-        //     return res.redirect("/projects/drafts");
-        // }
+        if (!draft) {
+            req.flash("error", "Draft not found.");
+            return res.redirect("/projects/drafts");
+        }
     }
 
+    // Pass categories as JSON directly to avoid conversion issues
     res.render("projects/new", {
-        draft, // ✅ Now, draft might contain a valid object
+        draft,
         categories: JSON.stringify(categories),
-        mapBoxToken: mapBoxToken
     });
 };
-
 
 module.exports.createProject = async (req, res, next) => {
     try {
@@ -113,8 +99,8 @@ module.exports.createProject = async (req, res, next) => {
 
             project.set({
                 ...req.body.project, // Update fields from form
-                displayTitle: req.body.project.displayTitle,
-                displayDescription: req.body.project.displayDescription,
+                titleText: req.body.project.titleText,
+                descriptionText: req.body.project.descriptionText,
                 isDraft: false, // Mark the project as published
                 updatedAt: Date.now(), // Update timestamp
             });
@@ -139,8 +125,8 @@ module.exports.createProject = async (req, res, next) => {
 
             project = new Project({
                 ...req.body.project, // Use form data
-                displayTitle: req.body.project.displayTitle,
-                displayDescription: req.body.project.displayDescription,
+                titleText: req.body.project.titleText,
+                descriptionText: req.body.project.descriptionText,
                 geometry: geoData.body.features[0].geometry, // Add location geometry
                 images: req.files.map((f) => ({
                     url: f.path,
@@ -177,35 +163,40 @@ module.exports.createProject = async (req, res, next) => {
 };
 
 module.exports.showProject = async (req, res) => {
+    
     try {
-        const language = req.session.language || defaultLanguage;
-        const currency = req.session.currency || defaultCurrency; 
-        let project = getDisplayTitleAndDescription(
-            [await Project.findById(req.params.id)
+        const project = await Project.findById(req.params.id)
             .populate({
                 path: "comments",
                 populate: { path: "author" },
             })
-            .populate("author")], 
-        language); 
-        project = project[0];
-        
+            .populate("author");
+
+        const language = req.session.language;
+        project.titleText =
+            project.title.get(language) || project.title.get("th");
+        project.descriptionText =
+            project.description.get(language) || project.description.get("th");
+
         if (!project) {
             req.flash("error", "Cannot find that project!");
             return res.redirect("/projects");
         }
+
         let apiFetch = await ApiFetch.findOne();
         const now = Date.now();
         const oneHour = 1000 * 60 * 60; // 1 hour in milliseconds
 
         let currencyData;
 
-        if (!apiFetch || now - new Date(apiFetch.lastFetchTime).getTime() > 1000 * 60 * 60) {
+        if (
+            !apiFetch ||
+            now - new Date(apiFetch.lastFetchTime).getTime() > oneHour
+        ) {
             const response = await fetch(
-               currencyToken
+                "https://api.freecurrencyapi.com/v1/latest?apikey=fca_live_cm1tAAJNfEOsxaq2vaGu0SI5uBAT8rBSgNSlHbTJ"
             );
             const freshData = await response.json();
-            
 
             if (!apiFetch) {
                 apiFetch = new ApiFetch({
@@ -223,14 +214,16 @@ module.exports.showProject = async (req, res) => {
             currencyData = apiFetch.currencyData;
         }
 
-        const userCurrency = req.user ? (await Users.findById(req.user._id)).currency : currency;
+        const userCurrency = req.user
+            ? (await Users.findById(req.user._id)).currency
+            : req.session.currency;
 
         // Pass the project, currencyData, and mapToken to the template
         res.render("projects/show", {
             project,
             currencyData,
             userCurrency,
-            mapBoxToken, // Pass Mapbox token
+            mapToken: process.env.MAPBOX_TOKEN, // Pass Mapbox token
         });
 
         
@@ -243,16 +236,36 @@ module.exports.showProject = async (req, res) => {
 
 module.exports.getProjectsByCategory = async (req, res) => {
     const { category } = req.params;
-    const language = req.session.language || defaultLanguage;
+    const language = req.session.language || "en"; // Default language
+
     try {
         // Find projects in the specified category
         const projects = await Project.find({
-            categories: { $in: [category] },
-            isDraft: false
+            categories: category,
         });
-        // console.log("📌 Fetched Projects:", projects);
         
-        const transformedProjects = getDisplayTitleAndDescription(projects,language);
+        const transformedProjects = projects.map((project) => ({
+            _id: project._id,
+            titleText: project.title.get(language) || project.title.get("en"),
+            descriptionText:
+                project.description.get(language) ||
+                project.description.get("en"),
+            images: project.images,
+            geometry: project.geometry,
+            currency: project.currency,
+            fundingGoal: project.fundingGoal,
+            location: project.location,
+            deadline: project.deadline,
+            createdAt: project.createdAt,
+            updatedAt: project.updatedAt,
+            author: project.author,
+            status: project.status,
+            comments: project.comments,
+            keywords: project.keywords,
+            categories: project.categories,
+            isDraft: project.isDraft,
+            lastSavedAt: project.lastSavedAt,
+        }));
 
         // Render category-specific projects page
         res.render("projects/category", {
@@ -319,6 +332,8 @@ module.exports.deleteProject = async (req, res) => {
     res.redirect("/projects");
 };
 
+// Save Project Controller
+// controllers/projects.js
 module.exports.toggleSaveProject = async (req, res) => {
     const { id } = req.params;
     const keyword = req.query.keyword || ""; // Get keyword if provided
@@ -351,88 +366,72 @@ module.exports.viewLibrary = async (req, res) => {
 };
 
 module.exports.saveDraft = async (req, res) => {
-    
+    console.log("🔥 Draft Data After Translation:", req.body); // Debug log
+    console.log("📸 Uploaded Files:", req.files); // Debug log
+
+    const { draftId, deleteImages, project } = req.body;
+
+    if (!project || !project.title) {
+        return res.status(400).json({ error: "Title is required for saving draft." });
+    }
+
     try {
-        const { draftId, deleteImages, project } = req.body;
-        
-        // Process uploaded images
-        const uploadedImages = req.files?.map(file => ({
-            url: file.path,
-            filename: file.filename,
-        })) || [];
+        const uploadedImages = Array.isArray(req.files)
+            ? req.files.map((file) => ({
+                  url: file.path,
+                  filename: file.filename,
+              }))
+            : [];
 
-        let draft = draftId ? await Project.findById(draftId) : null;
-    
-        if (draftId && !draft) {
-            return res.status(404).json({ error: "Draft not found." });
-        }
+        let draft;
 
-        // Handle image deletions
-        if (draft && deleteImages?.length) {
-            await Promise.all(deleteImages.map(async (filename) => {
-                await cloudinary.uploader.destroy(filename);
-            }));
-            await draft.updateOne({ $pull: { images: { filename: { $in: deleteImages } } } });
-        }
-        
-        // Prepare draft data
-        const embedding = await computeProjectEmbedding(project.title.get("en") || "");
-        console.log("📌 Computed Embedding:", embedding.slice(0, 5), "...");
-        const draftData = {
-            ...project,
-            images: [...(draft?.images || []), ...uploadedImages], 
-            geometry: {
-                "type": "Point", 
-                "coordinates": JSON.parse(req.body.project.geometry)
-            },
-            isDraft: true,
-            embedding,
-            lastSavedAt: Date.now(),
-            author: draft?.author || req.user._id,
-        };
+        if (draftId) {
+            draft = await Project.findById(draftId);
+            if (!draft) {
+                return res.status(404).json({ error: "Draft not found." });
+            }
 
-        if (draft) {
-            draft.set(draftData);
+            // Delete images if requested
+            if (deleteImages && Array.isArray(deleteImages)) {
+                for (let filename of deleteImages) {
+                    await cloudinary.uploader.destroy(filename);
+                }
+                await draft.updateOne({
+                    $pull: { images: { filename: { $in: deleteImages } } },
+                });
+            }
+
+            // Update draft with translated data
+            draft.set({
+                ...project,
+                isDraft: true,
+                lastSavedAt: Date.now(),
+            });
+
+            if (uploadedImages.length > 0) {
+                draft.images.push(...uploadedImages);
+            }
+
             await draft.save();
-            
         } else {
-            draft = new Project(draftData);
+            // Create a new draft with translated data
+            draft = new Project({
+                ...project,
+                images: uploadedImages,
+                isDraft: true,
+                author: req.user._id,
+                lastSavedAt: Date.now(),
+            });
+
             await draft.save();
         }
-        
-        console.log(draft)
-        return res.status(200).json({ 
-            success: true, 
-            message: "Draft saved successfully!",
-            draftId: draft._id
+
+        res.status(200).json({
+            message: "Draft saved successfully",
+            projectId: draft._id,
         });
-        
-
     } catch (error) {
-        console.error("❌ Failed to save draft:", error);
-        req.flash("error", "Failed to save draft");
+        console.error("❌ Failed to save draft:", error.message);
+        res.status(500).json({ error: error.message || "Failed to save draft." });
     }
 };
-
-
-module.exports.deleteDraft = async (req, res) => {
-    try {
-        const { id } = req.params;
-        await Project.findByIdAndDelete(id);
-        req.flash("success", "Draft deleted successfully.");
-        res.redirect("/projects/my-projects");
-    } catch (error) {
-        console.error("Failed to delete draft:", error);
-        req.flash("error", "Failed to delete draft.");
-        res.redirect("/projects/my-projects");
-    }
-};
-
-async function get_user(Users, req) {
-    let user = null;
-    if (req.user) {
-        user = await Users.findById(req.user._id);
-    }
-    return user;
-}
-

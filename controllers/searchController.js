@@ -36,7 +36,7 @@ exports.searchProjects = async (req, res) => {
     
 
     // **Step 2: Retrieve Projects from DB**
-    const allProjects = await Project.find({});
+    const allProjects = await Project.find({isDraft: false});
     
     
     
