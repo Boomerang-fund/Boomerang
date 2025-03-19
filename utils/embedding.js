@@ -4,7 +4,7 @@ let embedder = null; // Store the model in a global variable
 
 // ✅ Load the model at startup
 async function loadTransformerModel() {
-    console.log("🚀 Loading Transformer Model...");
+   
     embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
     console.log("✅ Transformer Model Loaded!");
 }

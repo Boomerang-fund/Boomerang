@@ -1,169 +1,177 @@
 module.exports = [
-    // 1. Technology
     {
         title: { en: "AI Healthcare Assistant", th: "ผู้ช่วยสุขภาพ AI" },
-        description: { 
+        description: {
             en: "An AI-powered chatbot that offers personalized health insights and mental wellness support.",
             th: "แชทบอท AI ที่ให้คำแนะนำด้านสุขภาพส่วนบุคคลและสนับสนุนสุขภาพจิต",
         },
-        keywords: ["AI", "Healthcare", "Wellness", "Chatbot"],
-        categories: ["technology", "health"],
+        categories: {
+            Technology: ["AI"],
+            Health: ["Healthcare", "Well-being Apps"]
+        }
     },
     {
         title: { en: "Blockchain Transparency System", th: "ระบบบล็อกเชนเพื่อความโปร่งใส" },
-        description: { 
+        description: {
             en: "A blockchain-based system for enhancing financial and governmental transparency.",
             th: "ระบบบล็อกเชนที่ช่วยเพิ่มความโปร่งใสทางการเงินและภาครัฐ",
         },
-        keywords: ["Blockchain", "Transparency", "Finance"],
-        categories: ["technology", "social"],
+        categories: {
+            Technology: ["Blockchain", "FinTech"],
+            Social: ["Transparency"]
+        }
     },
-
-    // 2. Media
     {
         title: { en: "Indie Music Platform", th: "แพลตฟอร์มดนตรีอินดี้" },
-        description: { 
+        description: {
             en: "A platform connecting independent musicians with fans and funding opportunities.",
             th: "แพลตฟอร์มที่เชื่อมโยงนักดนตรีอินดี้กับแฟนๆ และโอกาสในการระดมทุน",
         },
-        keywords: ["Music", "Streaming", "Entertainment"],
-        categories: ["media"],
+        categories: {
+            Media: ["Music", "Streaming", "Music Production"]
+        }
     },
     {
         title: { en: "Community Film Studio", th: "สตูดิโอภาพยนตร์ชุมชน" },
-        description: { 
+        description: {
             en: "A community-driven film studio supporting independent filmmakers.",
             th: "สตูดิโอภาพยนตร์ที่ได้รับทุนจากชุมชนเพื่อสนับสนุนผู้สร้างอิสระ",
         },
-        keywords: ["Film", "Creative", "Storytelling"],
-        categories: ["media", "social"],
+        categories: {
+            Media: ["Film", "Production"],
+            Social: ["Community Projects"]
+        }
     },
-
-    // 3. Gaming
     {
         title: { en: "Next-Gen VR Game", th: "เกม VR ยุคใหม่" },
-        description: { 
+        description: {
             en: "A revolutionary virtual reality game with immersive gameplay.",
             th: "เกมเสมือนจริงที่ให้ประสบการณ์การเล่นแบบสมจริง",
         },
-        keywords: ["Gaming", "Virtual Reality", "Innovation"],
-        categories: ["gaming", "technology"],
+        categories: {
+            Gaming: ["VR Gaming"],
+            Technology: ["VR"]
+        }
     },
     {
         title: { en: "Educational Board Game", th: "เกมกระดานเพื่อการศึกษา" },
-        description: { 
+        description: {
             en: "A fun and interactive board game designed to teach financial literacy.",
             th: "เกมกระดานแบบอินเทอร์แอคทีฟที่ออกแบบมาเพื่อสอนการเงิน",
         },
-        keywords: ["Education", "Board Game", "Learning"],
-        categories: ["gaming", "education"],
+        categories: {
+            Gaming: ["Board Games"],
+            Education: ["Financial Literacy"]
+        }
     },
-
-    // 4. Health
     {
         title: { en: "Wearable Stress Tracker", th: "อุปกรณ์ติดตามความเครียด" },
-        description: { 
+        description: {
             en: "An AI-powered wearable device that monitors stress levels and provides relaxation guidance.",
             th: "อุปกรณ์สวมใส่ที่ใช้ AI เพื่อตรวจจับระดับความเครียดและให้คำแนะนำในการผ่อนคลาย",
         },
-        keywords: ["Wearable Tech", "Mental Health", "Biometrics"],
-        categories: ["health", "technology"],
+        categories: {
+            Technology: ["AI", "Wearable Tech"],
+            Health: ["Mental Health", "Biometrics"]
+        }
     },
     {
         title: { en: "Telemedicine for Rural Areas", th: "แพลตฟอร์มแพทย์ทางไกล" },
-        description: { 
+        description: {
             en: "A digital healthcare platform bringing virtual doctor consultations to remote communities.",
             th: "แพลตฟอร์มแพทย์ทางไกลที่ช่วยให้ชุมชนห่างไกลสามารถพบแพทย์ออนไลน์",
         },
-        keywords: ["Telemedicine", "Healthcare", "Digital Health"],
-        categories: ["health", "social"],
+        categories: {
+            Health: ["Telemedicine"],
+            Social: ["Healthcare"]
+        }
     },
-
-    // 5. Education
     {
         title: { en: "AI-Powered Tutor", th: "ติวเตอร์ AI" },
-        description: { 
+        description: {
             en: "An AI-driven tutoring system that offers real-time educational support.",
             th: "ระบบติวเตอร์ที่ขับเคลื่อนด้วย AI เพื่อช่วยเหลือด้านการศึกษาแบบเรียลไทม์",
         },
-        keywords: ["AI", "Education", "Learning"],
-        categories: ["education", "technology"],
+        categories: {
+            Technology: ["AI"],
+            Education: ["E-learning"]
+        }
     },
-
-    // 6. Social
     {
         title: { en: "Clean Water Initiative", th: "โครงการน้ำสะอาด" },
-        description: { 
+        description: {
             en: "Developing sustainable water purification systems for underserved communities.",
             th: "สร้างระบบกรองน้ำที่ยั่งยืนเพื่อชุมชนที่ขาดแคลนน้ำสะอาด",
         },
-        keywords: ["Water Security", "Nonprofit", "Humanitarian"],
-        categories: ["social", "environment"],
+        categories: {
+            Social: ["Nonprofits"],
+            Environment: ["Water Conservation"]
+        }
     },
-
-    // 7. Environment
     {
         title: { en: "Coral Reef Restoration", th: "การฟื้นฟูแนวปะการัง" },
-        description: { 
+        description: {
             en: "A project dedicated to restoring marine biodiversity through artificial coral reefs.",
             th: "โครงการที่มุ่งฟื้นฟูความหลากหลายทางทะเลผ่านแนวปะการังเทียม",
         },
-        keywords: ["Marine Conservation", "Climate Action", "Sustainability"],
-        categories: ["environment", "science"],
+        categories: {
+            Environment: ["Marine Conservation", "Climate Action"],
+            Science: ["Biotechnology"]
+        }
     },
-
-    // 8. Food
     {
         title: { en: "Plant-Based Protein Startup", th: "สตาร์ทอัพโปรตีนจากพืช" },
-        description: { 
+        description: {
             en: "Creating a new sustainable plant-based protein for a healthier future.",
             th: "สร้างโปรตีนจากพืชที่ยั่งยืนเพื่ออนาคตที่ดีขึ้น",
         },
-        keywords: ["Food Tech", "Vegan", "Sustainability"],
-        categories: ["food", "science"],
+        categories: {
+            Food: ["Vegan Recipes", "Food Startups"],
+            Science: ["Biotechnology"]
+        }
     },
-
-    // 9. Fashion
     {
         title: { en: "Zero-Waste Fashion", th: "แฟชั่นยั่งยืนไร้ขยะ" },
-        description: { 
+        description: {
             en: "A fashion brand committed to zero-waste production and ethical design.",
             th: "แบรนด์แฟชั่นที่เน้นผลิตแบบไร้ขยะและใช้วัสดุที่มีจริยธรรม",
         },
-        keywords: ["Sustainable Fashion", "Ethical Design", "Circular Economy"],
-        categories: ["fashion", "social"],
+        categories: {
+            Fashion: ["Sustainable Fashion"],
+            Social: ["Ethical Design"]
+        }
     },
-
-    // 10. Science
     {
         title: { en: "Space Farming Research", th: "งานวิจัยการเกษตรในอวกาศ" },
-        description: { 
+        description: {
             en: "Studying plant growth in space to support future interplanetary missions.",
             th: "ศึกษาการเจริญเติบโตของพืชในอวกาศเพื่อรองรับภารกิจสำรวจดาวเคราะห์",
         },
-        keywords: ["Space Tech", "Biotechnology", "Agriculture"],
-        categories: ["science", "technology"],
+        categories: {
+            Science: ["Space Exploration", "Agriculture"],
+            Technology: ["AI in Science"]
+        }
     },
-
-    // 11. Travel
     {
         title: { en: "Eco-Tourism App", th: "แอปท่องเที่ยวเชิงอนุรักษ์" },
-        description: { 
+        description: {
             en: "A travel booking platform for sustainable tourism experiences.",
             th: "แพลตฟอร์มจองทริปท่องเที่ยวที่เน้นความยั่งยืนและสนับสนุนชุมชนท้องถิ่น",
         },
-        keywords: ["Eco-Tourism", "Adventure", "Sustainability"],
-        categories: ["travel", "social"],
+        categories: {
+            Travel: ["Eco-Tourism", "Sustainability"],
+            Social: ["Community Projects"]
+        }
     },
-
-    // 12. Home
     {
         title: { en: "Smart Home Energy Saver", th: "ระบบบ้านอัจฉริยะประหยัดพลังงาน" },
-        description: { 
+        description: {
             en: "An AI-powered system that optimizes energy usage in smart homes.",
             th: "ระบบ AI ที่ช่วยเพิ่มประสิทธิภาพการใช้พลังงานในบ้านอัจฉริยะ",
         },
-        keywords: ["Smart Home", "Energy Efficiency", "IoT"],
-        categories: ["home", "technology"],
+        categories: {
+            Home: ["Smart Home Gadgets", "Energy Efficiency"],
+            Technology: ["AI"]
+        }
     }
 ];

@@ -17,10 +17,9 @@ const ProjectSchema = new Schema(
         title: {
             type: Map,
             of: String,
-            required: false
-            // required: function () {
-            //     return !this.get("isDraft"); // Use this.get() for safe access
-            // },
+            required: function () {
+                return !this.get("isDraft"); // Use this.get() for safe access
+            },
         },
         originalTitle: {
             type: String,
@@ -101,15 +100,11 @@ const ProjectSchema = new Schema(
                 ref: "Comment",
             },
         ],
-        categories: [
-            {
-                type: String,
-                enum: ["technology", "media", "gaming", "health", "education", "social", "environment", "food", "fashion", "science", "travel", "home"],
-
-                required: true,
-                // Restrict to predefined categories
-            },
-        ],
+        categories: {
+            type: Map,
+            of: [String], // Ensures each key (category) has an array of keywords
+            default: () => new Map(), // Avoids undefined values
+        },
         isDraft: { type: Boolean, default: false },
         lastSavedAt: { type: Date, default: Date.now },
         embedding: [Number],

@@ -43,14 +43,14 @@ module.exports.projectSchema = Joi.object({
             .messages({
                 "any.only": "Status must be one of: active, successful, failed, canceled.",
             }),
-        keywords: Joi.array()
-            .items(Joi.string().max(30)) // Each keyword can have a max length of 30
-            .max(15) // Max 15 keywords
-            .optional()
-            .messages({
-                "array.max": "You can select up to 15 keywords only.",
-                "string.max": "Each keyword must not exceed 30 characters.",
-            }),
+        // keywords: Joi.array()
+        //     .items(Joi.string().max(30)) // Each keyword can have a max length of 30
+        //     .max(15) // Max 15 keywords
+        //     .optional()
+        //     .messages({
+        //         "array.max": "You can select up to 15 keywords only.",
+        //         "string.max": "Each keyword must not exceed 30 characters.",
+        //     }),
     })
         .required()
         .messages({

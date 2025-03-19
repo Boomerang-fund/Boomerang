@@ -139,7 +139,7 @@
                         <div id="step-4" class="form-step" style="display: none;" data-step="4">
                             <h2><%= __('createProject.step4.heading') %></h2>
                             <div id="categories-container"></div>
-                            <p>Selected Keywords: <span id="selected-count">0</span>/15</p>
+                            <p>Selected Keywords: <span id="selected-count">0</span></p>
                             <button type="button" class="btn btn-secondary" onclick="previousStep(3)">
                                 <%= __('createProject.previousButton') %>
                             </button>
@@ -156,257 +156,24 @@
                 <%= __('createProject.allProjectsLink') %>
             </a>
         </div>
-    
-    <script type="module">
-        let currentStep = parseInt("<%= nextStep %>", 10) || 1;
-        document.addEventListener("DOMContentLoaded", function () {
-             // Get the next step from the backend
-
-            console.log(`📌 Starting at Step ${currentStep}`);
-
-            // Hide all steps first
-            document.querySelectorAll(".form-step").forEach((step) => {
-                step.style.display = "none";
-            });
-
-            // Show only the current step
-            const activeStep = document.querySelector(`.form-step[data-step="${currentStep}"]`);
-                if (activeStep) {
-                    activeStep.style.display = "block";
-                } else {
-                    console.warn(`⚠️ No valid step found for ${currentStep}, defaulting to Step 1.`);
-                    document.querySelector('.form-step[data-step="1"]').style.display = "block"; // Default to Step 1
-                    currentStep = 1;
-                }
-        });
-        const categories = <%- categories %>; // Ensure categories is defined correctly as JSON.
-    
-       
-        const selectedKeywords = new Set(); // Tracks selected keywords
-        const maxKeywords = 15; // Max number of keywords allowed
-    
-        function nextStep(step) {
-            document.getElementById(`step-${currentStep}`).style.display = "none";
-            document.getElementById(`step-${step}`).style.display = "block";
-            currentStep = step;
-        }
-    
-        function previousStep(step) {
-            document.getElementById(`step-${currentStep}`).style.display = "none";
-            document.getElementById(`step-${step}`).style.display = "block";
-            currentStep = step;
-        }
-        function updateFlashMessage(message, type) {
-            const flashContainer = document.getElementById("flash-messages");
-
-            if (!flashContainer) {
-                console.error("❌ Flash message container not found!");
-                return;
-            }
-
-            // Determine Bootstrap class based on message type
-            const alertClass = type === "success" ? "alert-success" : "alert-danger";
-
-            // Create a new alert message (without close button)
-            const alertDiv = document.createElement("div");
-            alertDiv.className = `alert ${alertClass} alert-dismissible fade show`;
-            alertDiv.role = "alert";
-            alertDiv.innerHTML = `${message}`; // Removed close button
-
-            // Clear previous messages and insert the new one
-            flashContainer.innerHTML = "";
-            flashContainer.appendChild(alertDiv);
-
-            // Automatically fade out after 3 seconds
-            setTimeout(() => {
-                alertDiv.classList.remove("show"); // Start fade-out
-                alertDiv.classList.add("fade"); // Apply Bootstrap fade effect
-
-                // Remove alert from DOM after fade animation (0.5s)
-                setTimeout(() => {
-                    alertDiv.remove();
-                }, 500);
-            }, 3000);
-        }
-
-        mapboxgl.accessToken = "<%= mapBoxToken %>";
-        
-        const geocoder = new MapboxGeocoder({
-            accessToken: mapboxgl.accessToken,
-            types: 'place',
-            placeholder: 'Enter a city or place...',
-            mapboxgl: mapboxgl
-        });
-    
-        // Generates another div with .mapboxgl-ctrl-geocoder
-        document.getElementById('geocoder-container').appendChild(geocoder.onAdd());
-        let locationSelected = false;
-        const geocoderInput = document.querySelector(".mapboxgl-ctrl-geocoder input");
-        if (geocoderInput) {
-            geocoderInput.value = "<%= draft ? draft.location : '' %>";
-            document.getElementById('location').value = "<%= draft ? draft.location : '' %>";
-            document.getElementById('geometry').value = '<%= JSON.stringify(draft ? draft.geometry.coordinates : []) %>';
-            locationSelected = true;
-            
-        }
-        
-        document.addEventListener("click", function (event) {
-            if (event.target === geocoderInput) {
-                geocoder.query(geocoderInput.value);
-                 // Trigger Mapbox search
-            }
-        }, { once: true }); // Event fires only once
-
-         // Track if a dropdown option was clicked
-
-        geocoderInput.addEventListener("input", function () {
-            locationSelected = false;
-        }); // Manual input detection
-
-        geocoder.on('result', function(e) {
-            document.getElementById('location').value = e.result.place_name;
-            document.getElementById('geometry').value = JSON.stringify(e.result.geometry.coordinates);
-            locationSelected = true;
-        });
-
-        async function saveDraft() {
-            
-            if (document.querySelector(".mapboxgl-ctrl-geocoder input").value.trim() === "") {
-                console.log("⚠️ Empty location allowed. Setting location and geometry to blank.");
-                document.getElementById("location").value = "";
-                document.getElementById("geometry").value = "[]";
-            } 
-            else if (!locationSelected) {
-                updateFlashMessage("Please select a valid location from the dropdown before saving.", "error")
-                return; // Stop saving if no selection was made
-            }
-            const formData = new FormData();
-    
-            const draftIdInput = document.querySelector('input[name="draftId"]');
-            let draftId = draftIdInput ? draftIdInput.value.trim() : "";
-            if (draftId) formData.append("draftId", draftId);
-            
-            formData.append("project[originalTitle]", document.getElementById("originalTitle").value);
-            formData.append("project[originalDescription]", document.getElementById("originalDescription").value);
-            formData.append("project[location]", document.getElementById("location").value);
-            formData.append("project[geometry]", document.getElementById('geometry').value);
-            formData.append("project[fundingGoal]", document.getElementById("fundingGoal").value);
-            formData.append("project[currency]", document.getElementById("currency").value);
-            formData.append("project[deadline]", document.getElementById("deadline").value);
-            formData.append("project[isDraft]", true);
-    
-            const imageInput = document.getElementById("image");
-            if (imageInput && imageInput.files.length > 0) {
-                for (let i = 0; i < imageInput.files.length; i++) {
-                    formData.append("image", imageInput.files[i]);
-                }
-            }
-    
-            const deleteImages = document.querySelectorAll(
-                'input[name="deleteImages[]"]:checked'
-            );
-            deleteImages.forEach((checkbox) => {
-                formData.append("deleteImages[]", checkbox.value);
-            });
-    
-            try {
-                const response = await fetch("/projects/save-draft", {
-                    method: "POST",
-                    body: formData,
-                });
-                const data = await response.json(); // Parse JSON response
-                console.log("📌 Full response data:", data);
-                if (data.success) {
-                    updateFlashMessage(data.message, "success"); // ✅ Update flash message dynamically
-                    draftIdInput.value = data.draftId;        
-                } else {
-                    updateFlashMessage(data.message, "error");
-                }
-                
-            } catch (error) {
-                console.error("Error saving draft:", error);
-                alert("Failed to save draft.");
-            }
-        }
-    
-        function renderCategories() {
-            const container = document.getElementById("categories-container");
-            container.innerHTML = ""; // Clear existing content
-    
-            Object.entries(categories).forEach(([category, keywords]) => {
-                const categoryCard = document.createElement("div");
-                categoryCard.className = "card mb-3 shadow-sm";
-    
-                const categoryHeader = `
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">${category}</h5>
-                    </div>
-                `;
-    
-                const keywordBody = document.createElement("div");
-                keywordBody.className = "card-body";
-                const keywordList = document.createElement("div");
-                keywordList.className = "row";
-    
-                keywords.forEach((keyword) => {
-                    const keywordItem = document.createElement("div");
-                    keywordItem.className = "col-md-6 col-lg-4 mb-2";
-                    keywordItem.innerHTML = `
-                        <div class="form-check">
-                            <input 
-                                type="checkbox" 
-                                class="form-check-input" 
-                                id="${keyword}" 
-                                name="project[keywords][]" 
-                                value="${keyword}" 
-                                onchange="handleKeywordSelection(event)" 
-                            />
-                            <label class="form-check-label" for="${keyword}">
-                                ${keyword}
-                            </label>
-                        </div>
-                    `;
-                    keywordList.appendChild(keywordItem);
-                });
-    
-                keywordBody.appendChild(keywordList);
-    
-                categoryCard.innerHTML = categoryHeader;
-                categoryCard.appendChild(keywordBody);
-    
-                container.appendChild(categoryCard);
-            });
-        }
-    
-        function handleKeywordSelection(event) {
-            const keyword = event.target.value;
-            if (event.target.checked) {
-                if (selectedKeywords.size < maxKeywords) {
-                    selectedKeywords.add(keyword); // Add the keyword
-                } else {
-                    event.target.checked = false; // Prevent selecting more than max allowed
-                    alert(`You can only select up to ${maxKeywords} keywords.`);
-                }
-            } else {
-                selectedKeywords.delete(keyword); // Remove the keyword
-            }
-    
-            // Update the counter display
-            document.getElementById("selected-count").textContent =
-                selectedKeywords.size;
-        }
-    
-        // Initialize the categories rendering on page load
-        document.addEventListener("DOMContentLoaded", renderCategories);
-    
-        // Attach functions to global window object
-        window.nextStep = nextStep;
-        window.previousStep = previousStep;
-        window.handleKeywordSelection = handleKeywordSelection;
-        window.saveDraft = saveDraft;
-    </script>
     <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.min.js"></script>
-    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css" type="text/css">    
+    <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.7.0/mapbox-gl-geocoder.css" type="text/css"> 
+    
     <script>
-        
+        //For public/javascripts/new_ejs/mapBoxAutocomplete.js
+        var mapBoxToken = "<%= mapBoxToken %>";
+        var draftLocation = "<%= draft ? draft.location : '' %>";
+        var draftGeometry = <%= JSON.stringify(draft ? draft.geometry.coordinates : []) %>;
+
+        // For public/javascripts/new_ejs/categoriesAndKeywords.js
+        var categories = <%- categories %>;
+        var existingSelection = JSON.parse('<%- savedCategories %>');
+
+        //For public/javascripts/new_ejs/draftHandler.js
+        var currentStep = parseInt("<%= nextStep %>", 10) || 1;
     </script>
+
+    <script src="/javascripts/new_ejs/mapBoxAutocomplete.js"></script>
+    <script src="/javascripts/new_ejs/categoriesAndKeywords.js"></script>
+    <script src="/javascripts/new_ejs/draftHandler.js"></script>
+  

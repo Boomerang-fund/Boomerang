@@ -4,7 +4,7 @@ const Project = require("../models/project");
 const projects = require("./startups");
 const fs = require("fs");
 const path = require("path");
-
+const { categories: predefinedCategories } = require("../utils/categories");
 
 
 
@@ -32,11 +32,19 @@ const seedDB = async (wordVectors) => {
     await Project.deleteMany({});
     for (let i = 0; i < 100; i++) {
         const randomProject = projects[Math.floor(Math.random() * projects.length)];
-        console.log(randomProject.categories);
+       
         const randomCity = cities[Math.floor(Math.random() * cities.length)];
         const fundingGoal = Math.floor(Math.random() * 50) * 1000 + 1000;
         const titleEn = generateTitleVariation(randomProject.title["en"]);
+        const mappedCategories = new Map();
 
+        if (randomProject.categories && typeof randomProject.categories === "object") {
+            for (const [category, keywords] of Object.entries(randomProject.categories)) {
+                mappedCategories.set(category, Array.isArray(keywords) ? keywords : []);
+            }
+        } else {
+            console.error("❌ Invalid categories format:", randomProject.categories);
+        }
         // **Ensure Embedding Uses the Loaded Word Vectors**
         
 
@@ -68,7 +76,7 @@ const seedDB = async (wordVectors) => {
             ],
             status: "active",
             embedding: [],
-            categories: randomProject.categories
+            categories: mappedCategories
         });
 
         await project.save();

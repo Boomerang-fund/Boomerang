@@ -279,7 +279,7 @@ module.exports.renderNewForm = async (req, res) => {
             req.flash("error", "Draft not found.");
             return res.redirect("/projects/drafts");
         }
-        console.log(draft)
+       
         //Determine the step based on draft completion
         if (!draft.originalTitle || !draft.location) {
             nextStep = 1; // Stay on Step 1 if Title or Location is missing
@@ -293,13 +293,14 @@ module.exports.renderNewForm = async (req, res) => {
             nextStep = 4; // If everything is complete, stay on the last step
         }
         
-        console.log(`📌 Redirecting draft to Step ${nextStep}`);
+        
     }
 
     res.render("projects/new", {
         draft,
         nextStep, // ✅ Pass nextStep to frontend
-        categories: JSON.stringify(categories),
+        categories: JSON.stringify(categories), // From utils
+        savedCategories: draft ? JSON.stringify(draft.categories || {}) : "{}", // Load saved checkboxes
         mapBoxToken: mapBoxToken,
     });
 };
@@ -396,8 +397,8 @@ module.exports.saveDraft = async (req, res) => {
         }
         
         // Prepare draft data
+        //computeProjectEmbedding function is from utils/embedding.js
         const embedding = await computeProjectEmbedding(project.title.get("en") || "");
-        console.log("📌 Computed Embedding:", embedding.slice(0, 5), "...");
         const draftData = {
             ...project,
             images: [...(draft?.images || []), ...uploadedImages], 
@@ -405,12 +406,14 @@ module.exports.saveDraft = async (req, res) => {
                 "type": "Point", 
                 "coordinates": JSON.parse(req.body.project.geometry)
             },
+            categories: JSON.parse(req.body.project.categories),
             isDraft: true,
             embedding,
             lastSavedAt: Date.now(),
             author: draft?.author || req.user._id,
         };
-
+        
+        //Check whether to overwrite existing drafts or create a new one
         if (draft) {
             draft.set(draftData);
             await draft.save();
@@ -420,7 +423,6 @@ module.exports.saveDraft = async (req, res) => {
             await draft.save();
         }
         
-        console.log(draft)
         return res.status(200).json({ 
             success: true, 
             message: "Draft saved successfully!",
