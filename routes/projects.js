@@ -11,14 +11,8 @@ const { translate_project } = require("../utils/translation");
 const catchAsync = require("../utils/catchAsync");
 const {defaultLanguage, defaultCurrency } = require("../utils/constants");
 
-router.route("/")
-    .get(catchAsync(projects.index))
-    .post(
-        isLoggedIn,
-        upload.array("image"),
-        validateAndFixProject, 
-        catchAsync(projects.createProject)
-    );
+router.get("/", catchAsync(projects.index));
+    
 
 // New Project Page
 router.get("/new", 
@@ -55,7 +49,16 @@ router.get("/category/:category",
     getProjectsByCategory
 );
 
-
+router.post(
+    "/create-project",
+    isLoggedIn,
+    upload.array("image"), // Process file uploads
+    (req, res, next) => {
+        next();
+    },
+    catchAsync(translate_project),  // 🔥 Add translation middleware here
+    catchAsync(projects.createProject)
+)
 
 router.post(
     "/save-draft",
@@ -68,6 +71,8 @@ router.post(
     catchAsync(translate_project),  // 🔥 Add translation middleware here
     catchAsync(projects.saveDraft) // Now saveDraft runs AFTER translation
 );
+
+
 
 // Delete a Draft
 router.delete("/drafts/:id",

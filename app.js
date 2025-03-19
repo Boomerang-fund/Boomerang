@@ -225,6 +225,7 @@ app.use(async (req, res, next) => {
 
 app.use("/", usersRoutes);
 app.use("/projects", projectsRoutes);
+
 app.use("/projects/:id/comments", commentsRoutes);
 app.use(languageRoutes);
 app.use(currencyRoutes);

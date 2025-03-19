@@ -65,24 +65,10 @@ function updateFlashMessage(message, type) {
 }
 
 
-
-
-
-async function saveDraft() {
-    //Allows empty autocomplete options
-    if (document.querySelector(".mapboxgl-ctrl-geocoder input").value.trim() === "") {
-        console.log("⚠️ Empty location allowed. Setting location and geometry to blank.");
-        document.getElementById("location").value = "";
-        document.getElementById("geometry").value = "[]";
-    } 
-    //Variable locationSelected is declared in public/javascripts/new_ejs/mapBoxAutocomplete.js
-    else if (!locationSelected) {
-        updateFlashMessage("Please select a valid location from the dropdown before saving.", "error") // If not, make sure location is from one of the autocomplete options
-        return; 
-    }
+function prepareFormData(){
     const formData = new FormData();
 
-    const draftIdInput = document.querySelector('input[name="draftId"]');
+    window.draftIdInput = document.querySelector('input[name="draftId"]');
     let draftId = draftIdInput ? draftIdInput.value.trim() : "";
     if (draftId) formData.append("draftId", draftId);
     ["originalTitle", "originalDescription", "location", "geometry", "fundingGoal", "currency", "deadline"].forEach(field => {
@@ -104,6 +90,68 @@ async function saveDraft() {
     deleteImages.forEach((checkbox) => {
         formData.append("deleteImages[]", checkbox.value);
     });
+    return formData;
+}
+function isFormValid() {
+    const requiredFields = ["originalTitle", "originalDescription", "location", "geometry", "fundingGoal", "currency", "deadline"];
+    
+    // ✅ Check if any required field is empty
+    const isAnyFieldEmpty = requiredFields.some(field => {
+        const inputElement = document.getElementById(field);
+        if (!inputElement) {
+            console.log(`Missing field: ${field}`);
+            return true; // If the field is missing, consider it empty
+        }
+        const value = inputElement.value?.trim(); // Get value and trim whitespace
+        return !value || value === "" || (["fundingGoal", "deadline"].includes(field) && Number(value) <= 0);
+    });
+    // ✅ Check if at least one category is selected
+    const isCategoriesEmpty = document.querySelectorAll("#categories-container input[type='checkbox']:checked").length === 0;
+    if (isAnyFieldEmpty) {
+        return false;
+    }
+
+    if (isCategoriesEmpty) {
+        return false;
+    }
+    return true; // ✅ Form is valid
+}
+async function createProject(){ 
+    if (!isFormValid()) {
+        updateFlashMessage("Please fill in everything before creating a project.", "error")
+        return;
+    }
+    const formData = prepareFormData();
+    try {
+        const response = await fetch("/projects/create-project", {
+            method: "POST",
+            body: formData,
+        });
+        const data = await response.json();
+        if (data.success) {
+            
+            window.location.href = data.redirectUrl; // Redirect from the frontend
+        }
+
+        
+    } catch (error) {
+        console.error("Error creating project:", error);
+        alert("Failed to create project.");
+    }
+}
+async function saveDraft() {
+    //Allows empty autocomplete options
+    if (document.querySelector(".mapboxgl-ctrl-geocoder input").value.trim() === "") {
+        console.log("⚠️ Empty location allowed. Setting location and geometry to blank.");
+        document.getElementById("location").value = "";
+        document.getElementById("geometry").value = "[]";
+    } 
+    //Variable locationSelected is declared in public/javascripts/new_ejs/mapBoxAutocomplete.js
+    else if (!locationSelected) {
+        updateFlashMessage("Please select a valid location from the dropdown before saving.", "error") // If not, make sure location is from one of the autocomplete options
+        return; 
+    }
+    const formData = prepareFormData();
     //Runs save-draft function in controllers/projects.js
     try {
         const response = await fetch("/projects/save-draft", {
@@ -115,7 +163,7 @@ async function saveDraft() {
         // save-draft function in controllers/projects.js returns data.success (boolean), data.message, and draftId to be updated into frontend
         if (data.success) {
             updateFlashMessage(data.message, "success"); // ✅ Update flash message dynamically
-            draftIdInput.value = data.draftId; // Update frontend
+            window.draftIdInput.value = data.draftId; // Update frontend
         } else {
             updateFlashMessage(data.message, "error");
         }

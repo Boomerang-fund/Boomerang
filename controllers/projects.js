@@ -98,84 +98,6 @@ module.exports.renderNewForm = async (req, res) => {
 };
 
 
-module.exports.createProject = async (req, res, next) => {
-    try {
-        const { draftId } = req.body; // Retrieve draftId from the request
-        let project;
-
-        if (draftId) {
-            // Update an existing draft
-            project = await Project.findById(draftId);
-            if (!project) {
-                req.flash("error", "Draft not found.");
-                return res.redirect("/projects/drafts");
-            }
-
-            project.set({
-                ...req.body.project, // Update fields from form
-                displayTitle: req.body.project.displayTitle,
-                displayDescription: req.body.project.displayDescription,
-                isDraft: false, // Mark the project as published
-                updatedAt: Date.now(), // Update timestamp
-            });
-
-            // Geocode location
-            const geoData = await geocoder
-                .forwardGeocode({ query: req.body.project.location, limit: 1 })
-                .send();
-            project.geometry = geoData.body.features[0].geometry;
-
-            // Add uploaded images
-            const imgs = req.files.map((f) => ({
-                url: f.path,
-                filename: f.filename,
-            }));
-            project.images.push(...imgs);
-        } else {
-            // Create a new project
-            const geoData = await geocoder
-                .forwardGeocode({ query: req.body.project.location, limit: 1 })
-                .send();
-
-            project = new Project({
-                ...req.body.project, // Use form data
-                displayTitle: req.body.project.displayTitle,
-                displayDescription: req.body.project.displayDescription,
-                geometry: geoData.body.features[0].geometry, // Add location geometry
-                images: req.files.map((f) => ({
-                    url: f.path,
-                    filename: f.filename,
-                })),
-                 // Automatically assigned categories
-                author: req.user._id, // Associate with the current user
-            });
-        }
-
-        // Save the project
-        await project.save();
-        req.flash(
-            "success",
-            draftId
-                ? "Draft successfully published!"
-                : "Successfully created a new project!"
-        );
-        return res.redirect(`/projects/${project._id}`); // Redirect to the project page
-    } catch (error) {
-        // Improved error logging
-        console.error("Error in createProject:", {
-            message: error.message,
-            stack: error.stack,
-            body: req.body,
-        });
-
-        req.flash(
-            "error",
-            "Failed to create or update the project. Please ensure all required fields are filled."
-        );
-        res.redirect("/projects/new"); // Redirect back to the form
-    }
-};
-
 module.exports.showProject = async (req, res) => {
     try {
         const language = req.session.language || defaultLanguage;
@@ -391,7 +313,6 @@ module.exports.viewLibrary = async (req, res) => {
 };
 
 module.exports.saveDraft = async (req, res) => {
-    
     try {
         const { draftId, deleteImages, project } = req.body;
         
@@ -402,7 +323,6 @@ module.exports.saveDraft = async (req, res) => {
         })) || [];
 
         let draft = draftId ? await Project.findById(draftId) : null;
-    
         if (draftId && !draft) {
             return res.status(404).json({ error: "Draft not found." });
         }
@@ -431,27 +351,84 @@ module.exports.saveDraft = async (req, res) => {
             lastSavedAt: Date.now(),
             author: draft?.author || req.user._id,
         };
-        
+        console.log(draft);
         //Check whether to overwrite existing drafts or create a new one
         if (draft) {
             draft.set(draftData);
             await draft.save();
-            
         } else {
             draft = new Project(draftData);
             await draft.save();
         }
-        
+
         return res.status(200).json({ 
             success: true, 
             message: "Draft saved successfully!",
             draftId: draft._id
         });
-        
-
     } catch (error) {
         console.error("❌ Failed to save draft:", error);
         req.flash("error", "Failed to save draft");
+    }
+};
+
+module.exports.createProject = async (req, res, next) => {
+    
+    try {
+        const { draftId } = req.body;
+        let project = draftId ? await Project.findById(draftId) : new Project();
+
+        if (!project && draftId) {
+            req.flash("error", "Draft not found.");
+            return res.redirect("/projects/drafts");
+        }
+        
+        const embedding = await computeProjectEmbedding(project.title.get("en") || "");
+        
+        // Common project fields for both update and create
+        const projectData = {
+            ...req.body.project,
+            
+            geometry: {
+                "type": "Point", 
+                "coordinates": JSON.parse(req.body.project.geometry)
+            },
+            categories: JSON.parse(req.body.project.categories),
+            isDraft: false, // Always mark as published
+            author: project?.author || req.user._id,
+            embedding,
+            updatedAt: draftId ? Date.now() : undefined, // Update timestamp only if updating
+            createdAt:  Date.now()
+        };
+        console.log(projectData)
+        // Add uploaded images (only for new images)
+        if (req.files.length > 0) {
+            projectData.images = project.images
+                ? [...project.images, ...req.files.map(f => ({ url: f.path, filename: f.filename }))]
+                : req.files.map(f => ({ url: f.path, filename: f.filename }));
+        }
+
+        // Set author only for new projects
+        if (!draftId) {
+            projectData.author = req.user._id;
+        }
+
+        // Apply updates for draft or new project
+        project.set(projectData);
+        
+        // Save the project
+        await project.save();
+        req.flash("success", "Successfully created a new project!");
+        res.json({ success: true, redirectUrl: `/projects/${project._id}` });
+    } catch (error) {
+        console.error("❌ Error in createProject:", {
+            message: error.message,
+            stack: error.stack,
+            body: req.body,
+        });
+
+        // req.flash("error", "Failed to create or update the project. Please ensure all required fields are filled.");
+        return res.redirect("/projects/new");
     }
 };
 
