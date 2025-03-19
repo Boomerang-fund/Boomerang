@@ -15,7 +15,7 @@
                     <% } %>
 
                         <!-- Step 1: Basics -->
-                        <div id="step-1" class="form-step">
+                        <div id="step-1" class="form-step" data-step="1">
                             <h2>
                                 <%= __('createProject.step1.heading') %>
                             </h2>
@@ -43,7 +43,7 @@
                         </div>
 
                         <!-- Step 2: Details -->
-                        <div id="step-2" class="form-step" style="display: none">
+                        <div id="step-2" class="form-step" style="display: none" data-step="2">
                             <h2>
                                 <%= __('createProject.step2.heading') %>
                             </h2>
@@ -98,7 +98,7 @@
                         </div>
 
                         <!-- Step 3: Funding -->
-                        <div id="step-3" class="form-step" style="display: none">
+                        <div id="step-3" class="form-step" style="display: none" data-step="3">
                             <h2>
                                 <%= __('createProject.step3.heading') %>
                             </h2>
@@ -136,7 +136,7 @@
                                 <%= __('createProject.saveDraftButton') %>
                             </button>
                         </div>
-                        <div id="step-4" class="form-step" style="display: none;">
+                        <div id="step-4" class="form-step" style="display: none;" data-step="4">
                             <h2><%= __('createProject.step4.heading') %></h2>
                             <div id="categories-container"></div>
                             <p>Selected Keywords: <span id="selected-count">0</span>/15</p>
@@ -158,9 +158,30 @@
         </div>
     
     <script type="module">
+        let currentStep = parseInt("<%= nextStep %>", 10) || 1;
+        document.addEventListener("DOMContentLoaded", function () {
+             // Get the next step from the backend
+
+            console.log(`📌 Starting at Step ${currentStep}`);
+
+            // Hide all steps first
+            document.querySelectorAll(".form-step").forEach((step) => {
+                step.style.display = "none";
+            });
+
+            // Show only the current step
+            const activeStep = document.querySelector(`.form-step[data-step="${currentStep}"]`);
+                if (activeStep) {
+                    activeStep.style.display = "block";
+                } else {
+                    console.warn(`⚠️ No valid step found for ${currentStep}, defaulting to Step 1.`);
+                    document.querySelector('.form-step[data-step="1"]').style.display = "block"; // Default to Step 1
+                    currentStep = 1;
+                }
+        });
         const categories = <%- categories %>; // Ensure categories is defined correctly as JSON.
     
-        let currentStep = 1; // Keeps track of the current step in the form
+       
         const selectedKeywords = new Set(); // Tracks selected keywords
         const maxKeywords = 15; // Max number of keywords allowed
     

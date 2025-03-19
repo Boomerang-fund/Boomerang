@@ -178,6 +178,9 @@
             "fundingGoalLabel": "เป้าหมายการระดมทุน",
             "deadlineLabel": "กำหนดเวลา"
         },
+        "step4": {
+            "heading": "ขั้นตอนที่ 4: คำสำคัญ"
+        },
         "nextButton": "ถัดไป",
         "previousButton": "ก่อนหน้า",
         "submitButton": "ส่งโปรเจ็กต์",

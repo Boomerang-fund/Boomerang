@@ -268,22 +268,42 @@ module.exports.getProjectsByCategory = async (req, res) => {
 
 
 
-module.exports.renderEditForm = async (req, res) => {
-    const { id } = req.params;
-    const { fromDrafts } = req.query;
-    const project = await Project.findById(id);
-    if (!project) {
-        req.flash("error", "Cannot find that project!");
-        return res.redirect("/projects/drafts");
+module.exports.renderNewForm = async (req, res) => {
+    const { draftId } = req.query; // ✅ Get draftId from query params
+    let draft = null;
+    let nextStep = 1; // Default to Step 1
+
+    if (draftId) {
+        draft = await Project.findById(draftId);
+        if (!draft) {
+            req.flash("error", "Draft not found.");
+            return res.redirect("/projects/drafts");
+        }
+        console.log(draft)
+        //Determine the step based on draft completion
+        if (!draft.originalTitle || !draft.location) {
+            nextStep = 1; // Stay on Step 1 if Title or Location is missing
+        } else if (!draft.originalDescription || !(draft.images?.length > 0)) {
+            nextStep = 2; // Go to Step 2 if Description or Images are missing
+        } else if (!draft.fundingGoal || !draft.deadline) {
+            nextStep = 3; // Go to Step 3 if Funding Goal or Deadline is missing
+        } else if (!draft.categories || draft.categories.length === 0) {
+            nextStep = 4; // Go to Step 4 if Categories are missing
+        } else {
+            nextStep = 4; // If everything is complete, stay on the last step
+        }
+        
+        console.log(`📌 Redirecting draft to Step ${nextStep}`);
     }
 
-    // Provide default values for drafts if necessary
-    if (!project.deadline) {
-        project.deadline = new Date(); // Default to today's date (optional)
-    }
-
-    res.render("projects/edit", { project, fromDrafts });
+    res.render("projects/new", {
+        draft,
+        nextStep, // ✅ Pass nextStep to frontend
+        categories: JSON.stringify(categories),
+        mapBoxToken: mapBoxToken,
+    });
 };
+
 
 module.exports.updateProject = async (req, res) => {
     const { id } = req.params;
