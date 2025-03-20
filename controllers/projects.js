@@ -312,125 +312,76 @@ module.exports.viewLibrary = async (req, res) => {
     res.render("projects/library", { projects: user.savedProjects });
 };
 
-module.exports.saveDraft = async (req, res) => {
-    try {
-        const { draftId, deleteImages, project } = req.body;
-        
-        // Process uploaded images
-        const uploadedImages = req.files?.map(file => ({
-            url: file.path,
-            filename: file.filename,
-        })) || [];
-
-        let draft = draftId ? await Project.findById(draftId) : null;
-        if (draftId && !draft) {
-            return res.status(404).json({ error: "Draft not found." });
-        }
-
-        // Handle image deletions
-        if (draft && deleteImages?.length) {
-            await Promise.all(deleteImages.map(async (filename) => {
-                await cloudinary.uploader.destroy(filename);
-            }));
-            await draft.updateOne({ $pull: { images: { filename: { $in: deleteImages } } } });
-        }
-        
-        // Prepare draft data
-        //computeProjectEmbedding function is from utils/embedding.js
-        const embedding = await computeProjectEmbedding(project.title.get("en") || "");
-        const draftData = {
-            ...project,
-            images: [...(draft?.images || []), ...uploadedImages], 
-            geometry: {
-                "type": "Point", 
-                "coordinates": JSON.parse(req.body.project.geometry)
-            },
-            categories: JSON.parse(req.body.project.categories),
-            isDraft: true,
-            embedding,
-            lastSavedAt: Date.now(),
-            author: draft?.author || req.user._id,
-        };
-        console.log(draft);
-        //Check whether to overwrite existing drafts or create a new one
-        if (draft) {
-            draft.set(draftData);
-            await draft.save();
-        } else {
-            draft = new Project(draftData);
-            await draft.save();
-        }
-
-        return res.status(200).json({ 
-            success: true, 
-            message: "Draft saved successfully!",
-            draftId: draft._id
-        });
-    } catch (error) {
-        console.error("❌ Failed to save draft:", error);
-        req.flash("error", "Failed to save draft");
-    }
-};
-
-module.exports.createProject = async (req, res, next) => {
-    
+//One controller function to handle both save draft and create project
+module.exports.upsertProject = async (req, res) => {
     try {
         const { draftId } = req.body;
+        const isDraft = req.url.includes("save-draft"); // Check if it's saving a draft or publishing
         let project = draftId ? await Project.findById(draftId) : new Project();
 
         if (!project && draftId) {
             req.flash("error", "Draft not found.");
             return res.redirect("/projects/drafts");
         }
+
+        // Process uploaded images
+        const uploadedImages = req.files?.map(file => ({
+            url: file.path,
+            filename: file.filename,
+        })) || [];
+
+        // Handle image deletions
+        if (project && req.body.deleteImages?.length) {
+            await Promise.all(req.body.deleteImages.map(async (filename) => {
+                await cloudinary.uploader.destroy(filename);
+            }));
+            await project.updateOne({ $pull: { images: { filename: { $in: req.body.deleteImages } } } });
+        }
+    
+        // Compute project embedding
+        const embedding = await computeProjectEmbedding(req.body.project.title.get("en") || "");
         
-        const embedding = await computeProjectEmbedding(project.title.get("en") || "");
-        
-        // Common project fields for both update and create
+        // Prepare project data
         const projectData = {
             ...req.body.project,
-            
+            images: [...(project?.images || []), ...uploadedImages], 
             geometry: {
-                "type": "Point", 
-                "coordinates": JSON.parse(req.body.project.geometry)
+                type: "Point", 
+                coordinates: JSON.parse(req.body.project.geometry)
             },
             categories: JSON.parse(req.body.project.categories),
-            isDraft: false, // Always mark as published
-            author: project?.author || req.user._id,
+            isDraft, // Dynamically set based on endpoint
             embedding,
-            updatedAt: draftId ? Date.now() : undefined, // Update timestamp only if updating
-            createdAt:  Date.now()
+            lastSavedAt: isDraft ? Date.now() : project.lastSavedAt, // Update timestamp if draft
+            updatedAt: !isDraft ? Date.now() : project.updatedAt, // Only update if publishing
+            createdAt: project.isNew ? Date.now() : project.createdAt, // Set creation date only for new projects
+            author: project?.author || req.user._id,
         };
-        console.log(projectData)
-        // Add uploaded images (only for new images)
-        if (req.files.length > 0) {
-            projectData.images = project.images
-                ? [...project.images, ...req.files.map(f => ({ url: f.path, filename: f.filename }))]
-                : req.files.map(f => ({ url: f.path, filename: f.filename }));
-        }
 
-        // Set author only for new projects
-        if (!draftId) {
-            projectData.author = req.user._id;
-        }
+        console.log(projectData);
 
-        // Apply updates for draft or new project
+        // Apply updates and save
         project.set(projectData);
-        
-        // Save the project
         await project.save();
-        req.flash("success", "Successfully created a new project!");
-        res.json({ success: true, redirectUrl: `/projects/${project._id}` });
-    } catch (error) {
-        console.error("❌ Error in createProject:", {
-            message: error.message,
-            stack: error.stack,
-            body: req.body,
-        });
 
-        // req.flash("error", "Failed to create or update the project. Please ensure all required fields are filled.");
-        return res.redirect("/projects/new");
+        if (isDraft) {
+            return res.status(200).json({ success: true, message: "Draft saved successfully!", draftId: project._id });
+        } else {
+            req.flash("success", "Successfully created a new project!");
+            return res.json({ success: true, redirectUrl: `/projects/${project._id}` });
+        }
+    } catch (error) {
+        console.error("❌ Error in upsertProject:", { message: error.message, stack: error.stack, body: req.body });
+
+        if (req.url.includes("save-draft")) {
+            return res.status(500).json({ success: false, message: "Failed to save draft." });
+        } else {
+            req.flash("error", "Failed to create or update the project. Please ensure all required fields are filled.");
+            return res.redirect("/projects/new");
+        }
     }
 };
+
 
 
 module.exports.deleteDraft = async (req, res) => {

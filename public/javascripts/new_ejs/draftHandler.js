@@ -65,113 +65,111 @@ function updateFlashMessage(message, type) {
 }
 
 
-function prepareFormData(){
+// ✅ Prepare form data dynamically
+function prepareFormData() {
     const formData = new FormData();
 
-    window.draftIdInput = document.querySelector('input[name="draftId"]');
-    let draftId = draftIdInput ? draftIdInput.value.trim() : "";
-    if (draftId) formData.append("draftId", draftId);
-    ["originalTitle", "originalDescription", "location", "geometry", "fundingGoal", "currency", "deadline"].forEach(field => {
-        formData.append(`project[${field}]`, document.getElementById(field).value);
+    const draftIdInput = document.querySelector('input[name="draftId"]');
+    if (draftIdInput?.value.trim()) {
+        formData.append("draftId", draftIdInput.value.trim());
+    }
+
+    // Fields to append
+    const fields = ["originalTitle", "originalDescription", "location", "geometry", "fundingGoal", "currency", "deadline"];
+    fields.forEach(field => {
+        const input = document.getElementById(field);
+        if (input) formData.append(`project[${field}]`, input.value);
     });
-    //Function is from public/javascripts/new_ejs/categoriesAndKeywords.js
+
+    // Retrieve selected categories & keywords
     formData.append("project[categories]", JSON.stringify(getSelectedCategoriesForSubmission()));
 
+    // Attach images
     const imageInput = document.getElementById("image");
     if (imageInput && imageInput.files.length > 0) {
-        for (let i = 0; i < imageInput.files.length; i++) {
-            formData.append("image", imageInput.files[i]);
-        }
+        [...imageInput.files].forEach(file => formData.append("image", file));
     }
 
-    const deleteImages = document.querySelectorAll(
-        'input[name="deleteImages[]"]:checked'
-    );
-    deleteImages.forEach((checkbox) => {
-        formData.append("deleteImages[]", checkbox.value);
-    });
+    // Handle deleted images
+    document.querySelectorAll('input[name="deleteImages[]"]:checked')
+        .forEach(checkbox => formData.append("deleteImages[]", checkbox.value));
+
     return formData;
 }
+
+// ✅ Validate form before submission
 function isFormValid() {
     const requiredFields = ["originalTitle", "originalDescription", "location", "geometry", "fundingGoal", "currency", "deadline"];
-    
-    // ✅ Check if any required field is empty
-    const isAnyFieldEmpty = requiredFields.some(field => {
-        const inputElement = document.getElementById(field);
-        if (!inputElement) {
-            console.log(`Missing field: ${field}`);
-            return true; // If the field is missing, consider it empty
-        }
-        const value = inputElement.value?.trim(); // Get value and trim whitespace
-        return !value || value === "" || (["fundingGoal", "deadline"].includes(field) && Number(value) <= 0);
-    });
-    // ✅ Check if at least one category is selected
-    const isCategoriesEmpty = document.querySelectorAll("#categories-container input[type='checkbox']:checked").length === 0;
-    if (isAnyFieldEmpty) {
-        return false;
-    }
 
-    if (isCategoriesEmpty) {
-        return false;
-    }
-    return true; // ✅ Form is valid
+    // Check for empty required fields
+    const isEmptyField = requiredFields.some(field => {
+        const input = document.getElementById(field);
+        return !input || !input.value.trim() || (["fundingGoal", "deadline"].includes(field) && Number(input.value) <= 0);
+    });
+
+    // Ensure at least one category is selected
+    const hasCategories = document.querySelector("#categories-container input[type='checkbox']:checked");
+
+    return !isEmptyField && hasCategories;
 }
-async function createProject(){ 
-    if (!isFormValid()) {
-        updateFlashMessage("Please fill in everything before creating a project.", "error")
+
+// ✅ Submit form data (Handles both drafts & project creation)
+async function submitProject(isDraft = false) {
+    // If publishing, validate form
+    if (!isDraft && !isFormValid()) {
+        updateFlashMessage("Please fill in everything before creating a project.", "error");
         return;
     }
+
     const formData = prepareFormData();
+    const endpoint = isDraft ? "/projects/save-draft" : "/projects/create-project";
+
     try {
-        const response = await fetch("/projects/create-project", {
+        const response = await fetch(endpoint, {
             method: "POST",
             body: formData,
         });
+
         const data = await response.json();
         if (data.success) {
             
-            window.location.href = data.redirectUrl; // Redirect from the frontend
-        }
 
-        
-    } catch (error) {
-        console.error("Error creating project:", error);
-        alert("Failed to create project.");
-    }
-}
-async function saveDraft() {
-    //Allows empty autocomplete options
-    if (document.querySelector(".mapboxgl-ctrl-geocoder input").value.trim() === "") {
-        console.log("⚠️ Empty location allowed. Setting location and geometry to blank.");
-        document.getElementById("location").value = "";
-        document.getElementById("geometry").value = "[]";
-    } 
-    //Variable locationSelected is declared in public/javascripts/new_ejs/mapBoxAutocomplete.js
-    else if (!locationSelected) {
-        updateFlashMessage("Please select a valid location from the dropdown before saving.", "error") // If not, make sure location is from one of the autocomplete options
-        return; 
-    }
-    const formData = prepareFormData();
-    //Runs save-draft function in controllers/projects.js
-    try {
-        const response = await fetch("/projects/save-draft", {
-            method: "POST",
-            body: formData,
-        });
-        const data = await response.json(); // Parse JSON response
-        
-        // save-draft function in controllers/projects.js returns data.success (boolean), data.message, and draftId to be updated into frontend
-        if (data.success) {
-            updateFlashMessage(data.message, "success"); // ✅ Update flash message dynamically
-            window.draftIdInput.value = data.draftId; // Update frontend
+            if (isDraft) {
+                // Update draft ID in form to persist changes
+                updateFlashMessage(data.message, "success");
+                document.querySelector('input[name="draftId"]').value = data.draftId;
+            } else {
+                // Redirect to project page after creation
+                window.location.href = data.redirectUrl;
+            }
         } else {
             updateFlashMessage(data.message, "error");
         }
-        
     } catch (error) {
-        console.error("Error saving draft:", error);
-        alert("Failed to save draft.");
+        console.error(`Error ${isDraft ? "saving draft" : "creating project"}:`, error);
+        alert(`Failed to ${isDraft ? "save draft" : "create project"}.`);
     }
+}
+
+// ✅ Handlers for saving draft & creating project
+function saveDraft() {
+    // Allow empty autocomplete options
+    const locationInput = document.querySelector(".mapboxgl-ctrl-geocoder input");
+    if (locationInput?.value.trim() === "") {
+        document.getElementById("location").value = "";
+        document.getElementById("geometry").value = "[]";
+    } 
+    // Ensure a valid location is selected
+    else if (!locationSelected) {
+        updateFlashMessage("Please select a valid location from the dropdown before saving.", "error");
+        return;
+    }
+
+    submitProject(true); //isDraft = true
+}
+
+function createProject() {
+    submitProject(false); // isDraft = false
 }
 
 document.addEventListener("DOMContentLoaded", goToStep);

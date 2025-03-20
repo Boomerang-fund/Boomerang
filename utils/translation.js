@@ -29,6 +29,7 @@ async function translate_text(text) {
 }
 
 async function translate_project(req, res, next) {
+    
     // Ensure title and description are properly handled
     if (!req.body.project.originalTitle || req.body.project.originalTitle.trim() === "") {
         req.body.project.title = await translate_text("Title not found");
@@ -41,7 +42,7 @@ async function translate_project(req, res, next) {
     } else if (!req.body.project.description) {
         req.body.project.description = await translate_text(req.body.project.originalDescription);
     }
-
+    
     next();
 }
 

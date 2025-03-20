@@ -50,26 +50,19 @@ router.get("/category/:category",
 );
 
 router.post(
-    "/create-project",
-    isLoggedIn,
-    upload.array("image"), // Process file uploads
-    (req, res, next) => {
-        next();
-    },
-    catchAsync(translate_project),  // 🔥 Add translation middleware here
-    catchAsync(projects.createProject)
-)
-
-router.post(
     "/save-draft",
     isLoggedIn,
-    upload.array("image"), // Process file uploads
-    (req, res, next) => {
-        
-        next();
-    },
-    catchAsync(translate_project),  // 🔥 Add translation middleware here
-    catchAsync(projects.saveDraft) // Now saveDraft runs AFTER translation
+    upload.array("image"),
+    catchAsync(translate_project),  
+    catchAsync(projects.upsertProject)  // ✅ Now handles draft saving
+);
+
+router.post(
+    "/create-project",
+    isLoggedIn,
+    upload.array("image"),
+    catchAsync(translate_project),  
+    catchAsync(projects.upsertProject)  // ✅ Now handles both draft updates and new project creation
 );
 
 
