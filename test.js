@@ -20,13 +20,13 @@ async function computeProjectEmbedding(title) {
 
 // **3️⃣ Update MongoDB with SBERT Embeddings**
 async function updateProjectsWithEmbeddings() {
-    const projects = await Project.find({}, "title");
+    const projects = await Project.find({});
 
     for (let project of projects) {
         const englishTitle = project.title?.get("en");
         if (!englishTitle) continue;
-
-        const embedding = await computeProjectEmbedding(englishTitle);
+        console.log(englishTitle + " in " + project.location);
+        const embedding = await computeProjectEmbedding(englishTitle + " in " + project.location);
 
         await Project.updateOne(
             { _id: project._id },

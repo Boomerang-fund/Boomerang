@@ -339,7 +339,7 @@ module.exports.upsertProject = async (req, res) => {
         }
     
         // Compute project embedding
-        const embedding = await computeProjectEmbedding(req.body.project.title.get("en") || "");
+        const embedding = await computeProjectEmbedding(isDraft ? "" : req.body.project.title.get("en") + " in " + req.body.project.location);
         
         // Prepare project data
         const projectData = {
