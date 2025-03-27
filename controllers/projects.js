@@ -30,8 +30,7 @@ module.exports.index = async (req, res) => {
 
     // Convert projects to GeoJSON format
     try {
-        // Only keep non-draft projects
-        const publishedProjects = projects.filter((project) => !project.isDraft);
+        const publishedProjects = projects.filter((project) => !project.isDraft); // Only keep non-draft projects
 
         const geoJsonProjects = mapGeoJSON(publishedProjects);
 

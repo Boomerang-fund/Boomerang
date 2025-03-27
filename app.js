@@ -18,9 +18,6 @@ const LocalStrategy = require("passport-local");
 const GoogleStrategy = require("passport-google-oauth20").Strategy;
 console.timeEnd("Passport Import");
 
-
-
-
 const ejsMate = require("ejs-mate");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
@@ -162,7 +159,8 @@ app.use(async (req, res, next) => {
 });
 
 app.use(async (req, res, next) => {
-    req.session
+    console.log(`New Request: ${req.method} ${req.url}`);
+
     try {
         // res.locals.__ is a FRONT END reference for any data put in it
         // req.session.__ is a BACK END quick reference for any data put in it (Only refernce this)
@@ -171,10 +169,12 @@ app.use(async (req, res, next) => {
         // Defaults to chosen value unless session or user data exists
         let language = defaultLanguage;
         let currency = defaultCurrency;
+        
         if (req.session.cookiesBool) {
             if (req.session.language) {language = req.session.language;}
             if (req.session.currency) {currency = req.session.currency;}
         }
+
         // Overwrite session data with user data if available
         if (req.isAuthenticated() && req.user) {
             const user = await User.findById(req.user._id).lean(); // Use .lean() to improve query performance
@@ -201,20 +201,18 @@ app.use(async (req, res, next) => {
         // Defines variables for global acces (including frontend)
         res.locals.availableLanguages = availableLanguages;
         res.locals.availableCurrencies = availableCurrencies;
-        res.locals.selectedLanguage = language;
-       
-        res.locals.selectedCurrency = currency;
+        res.locals.defaultLanguage = defaultLanguage;
+        res.locals.defaultCurrency = defaultCurrency;
         
+        res.locals.selectedLanguage = language;
+        res.locals.selectedCurrency = currency;
+       
         res.locals.cookiesBool = req.session.cookiesBool;
-        console.log(`New Request: ${req.method} ${req.url}`);
         
         // console.log(res.locals.cookiesBool);
         res.locals.currentUser = req.user;
         res.locals.success = req.flash("success");
         res.locals.error = req.flash("error");
-
-        
-        
 
         next();
     } catch (error) {

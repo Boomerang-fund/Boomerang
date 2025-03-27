@@ -1,4 +1,5 @@
 const User = require('../models/user'); // adjust path as needed
+const { getDynamicMLUpdateFunctions } = require("../utils/constants");
 
 // Handle language selection
 exports.setLanguage = async (req, res) => {
@@ -11,7 +12,9 @@ exports.setLanguage = async (req, res) => {
         // Updating User's prefence & session language
         if (req.isAuthenticated()) {
             const user = await User.findById(req.user._id);
-            if (!user) {return res.status(404).json({ error: "User not found" });}
+            if (!user) {
+                return res.status(404).json({ error: "User not found" });
+            }
 
             if (user.cookiesBool) {
                 user.language = language; // Sets the user language
@@ -35,7 +38,7 @@ exports.setLanguage = async (req, res) => {
             });
         }
 
-        return res.status(200).json({ message: "Language set"});
+        return res.status(200).json({ message: "Language set" });
     } catch (err) {
         console.error("Error updating language:", err);
         return res.status(500).json({ error: "Internal server error" });

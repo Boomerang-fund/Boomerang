@@ -83,71 +83,58 @@
             </button>
         </div>
     </div>
-    <div
-        id="scrollableProjects"
-        class="d-flex overflow-auto"
-        style="gap: 20px; scroll-behavior: smooth"
-    >
-        <% const firstNineProjects=projects.slice(0, 9);%> <% for (let project of
-        firstNineProjects) { %>
-        <div
-            class="card"
-            style="min-width: 300px; max-width: 300px; flex: 0 0 auto"
-        >
-            <img
-                src="<%= project.images && project.images[0] ? project.images[0].url : 'https://res.cloudinary.com/dei5hbjfg/image/upload/v1730665603/Boomerang/ujp5lxrxohzvkutf5oos.jpg' %>"
-                class="card-img-top"
-                alt="<%= project.displayTitle %>"
-                style="height: 180px; object-fit: cover"
-            />
-            <div class="card-body">
-                <h5 class="card-title"><%= project.displayTitle %></h5>
-                <p class="card-text"><%= project.displayDescription %></p>
-                <% if (currentUser) { %>
-                <form
-                    action="/projects/<%= project._id %>/toggleSave"
-                    method="POST"
-                    style="margin: 0"
-                >
-                    <button
-                        type="submit"
-                        class="btn btn-link p-0"
-                        style="font-size: 1rem; color: #007bff"
-                    >
-                        <% if (currentUser.savedProjects &&
-                        currentUser.savedProjects.includes(project._id.toString()))
-                        { %>
-                        <i class="fas fa-bookmark"></i>
-                        <% } else { %>
-                        <i class="far fa-bookmark"></i>
+    <div id="scrollableProjects" class="d-flex overflow-auto" style="gap: 20px; scroll-behavior: smooth">
+        <% const firstNineProjects=projects.slice(0, 9);%>
+            <% for (let project of firstNineProjects) { %>
+                <div class="card" style="min-width: 300px; max-width: 300px; flex: 0 0 auto">
+                    <img src="<%= project.images && project.images[0] ? project.images[0].url : 'https://res.cloudinary.com/dei5hbjfg/image/upload/v1730665603/Boomerang/ujp5lxrxohzvkutf5oos.jpg' %>"
+                        class="card-img-top" alt="<%= project.displayTitle %>" style="height: 180px; object-fit: cover" />
+                    <div class="card-body">
+                        <h5 class="card-title" title-multilangauge-map='<%- JSON.stringify(Object.fromEntries(project.title)) %>'>
+                            <%= project.displayTitle %>
+                        </h5>
+                        <p class="card-text" description-multilangauge-map='<%- JSON.stringify(Object.fromEntries(project.description)) %>'>
+                            <%= project.displayDescription %>
+                        </p>
+                        
+                        <% if (currentUser) { %>
+                            <form action="/projects/<%= project._id %>/toggleSave" method="POST" style="margin: 0">
+                                <button type="submit" class="btn btn-link p-0" style="font-size: 1rem; color: #007bff">
+                                    <% if (currentUser.savedProjects && currentUser.savedProjects.includes(project._id.toString())) { %>
+                                        <i class="fas fa-bookmark"></i>
+                                        <% } else { %>
+                                            <i class="far fa-bookmark"></i>
+                                            <% } %>
+                                </button>
+                            </form>
                         <% } %>
-                    </button>
-                </form>
-                <% } %>
-                <p class="card-text text-muted">
-                    <small> <%= project.location %> </small>
-                </p>
-                <% const deadlineDate=new Date(project.deadline); const
-                currentDate=new Date(); const timeDifference=deadlineDate -
-                currentDate; const daysLeft=Math.ceil(timeDifference / (1000 *
-                60 * 60 * 24)); %>
-                <p class="card-text">
-                    <small class="text-muted">
-                        <% if (daysLeft> 0) { %>
-                        <i class="fas fa-clock"></i>
-                        <%= daysLeft %> <%= __('index.daysLeft') %> <% } else {
-                        %>
-                        <span class="text-danger">
-                            <%= __('recommendedProjects.deadlinePassed') %>
-                        </span>
-                        <% } %>
-                    </small>
-                </p>
-                <a href="/projects/<%= project._id %>" class="btn btn-primary">
-                    <%= __('index.viewButton') %>
-                </a>
-            </div>
-        </div>
+                        <p class="card-text text-muted">
+                            <small>
+                                <%= project.location %>
+                            </small>
+                        </p>
+                        <% const deadlineDate=new Date(project.deadline);
+                            const currentDate=new Date();
+                            const timeDifference=deadlineDate - currentDate;
+                            const daysLeft=Math.ceil(timeDifference / (1000 * 60 * 60 * 24)); %>
+                        <p class="card-text">
+                            <small class="text-muted">
+                                <% if (daysLeft> 0) { %>
+                                    <i class="fas fa-clock"></i>
+                                    <%= daysLeft %>
+                                    <%= __('index.daysLeft') %>
+                                <% } else { %>
+                                    <span class="text-danger">
+                                        <%= __('recommendedProjects.deadlinePassed') %>
+                                    </span>
+                                <% } %>
+                            </small>
+                        </p>
+                        <a href="/projects/<%= project._id %>" class="btn btn-primary">
+                            <%= __('index.viewButton') %>
+                        </a>
+                    </div>
+                </div>
         <% } %>
     </div>
 </div>
