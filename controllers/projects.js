@@ -16,11 +16,9 @@ module.exports.index = async (req, res) => {
     const language = req.session.language || defaultLanguage;
     const user = await get_user(Users, req);
 
-    // Fetch all projects
     const allProjects = await Project.find({});
     const projects = getDisplayTitleAndDescription(allProjects, language);
 
-    // Fetch user's own projects if logged in
     let myProjects = [];
     if (req.user) {
         const userProjects = await Project.find({
@@ -32,10 +30,8 @@ module.exports.index = async (req, res) => {
 
     // Convert projects to GeoJSON format
     try {
-        // Filter out only published projects (not drafts)
-        const publishedProjects = projects.filter(
-            (project) => !project.isDraft
-        );
+        // Only keep non-draft projects
+        const publishedProjects = projects.filter((project) => !project.isDraft);
 
         const geoJsonProjects = mapGeoJSON(publishedProjects);
 
@@ -53,7 +49,7 @@ module.exports.index = async (req, res) => {
 
 function getDisplayTitleAndDescription(projects, language) {
     return projects.map((project) => ({
-        ...project.toObject(), // Convert Mongoose model to plain object
+        ...project.toObject(),
         displayTitle: project.title?.get(language) || project.title?.get(defaultLanguage) || "Untitled",
         displayDescription: project.description?.get(language) || project.description?.get(defaultLanguage) || "No description available",
     }));
@@ -61,25 +57,25 @@ function getDisplayTitleAndDescription(projects, language) {
 
 function mapGeoJSON(projects) {
     const ret = {
-            type: "FeatureCollection",
-            features: projects.map((project) => ({
-                type: "Feature",
-                geometry: project.geometry || {
-                    type: "Point",
-                    coordinates: [0, 0], // Default coordinates
-                },
-                properties: {
-                    title: project.displayTitle,
-                    description: project.displayDescription,
-                    popUpMarkup: `<a href="/projects/${project._id}">${project.displayTitle}</a>`,
-                },
-            })),
-        };
+        type: "FeatureCollection",
+        features: projects.map((project) => ({
+            type: "Feature",
+            geometry: project.geometry || {
+                type: "Point",
+                coordinates: [0, 0], // Default coordinates
+            },
+            properties: {
+                title: project.displayTitle,
+                description: project.displayDescription,
+                popUpMarkup: `<a href="/projects/${project._id}">${project.displayTitle}</a>`,
+            },
+        })),
+    };
     return ret;
 }
 
 module.exports.renderNewForm = async (req, res) => {
-    const { draftId } = req.query; // ✅ Get draftId from query params
+    const { draftId } = req.query;
     let draft = null;
 
     if (draftId) {
@@ -93,25 +89,27 @@ module.exports.renderNewForm = async (req, res) => {
     res.render("projects/new", {
         draft, // ✅ Now, draft might contain a valid object
         categories: JSON.stringify(categories),
-        mapBoxToken: mapBoxToken
+        mapBoxToken: mapBoxToken,
     });
 };
-
 
 module.exports.showProject = async (req, res) => {
     try {
         const language = req.session.language || defaultLanguage;
-        const currency = req.session.currency || defaultCurrency; 
+        const currency = req.session.currency || defaultCurrency;
         let project = getDisplayTitleAndDescription(
-            [await Project.findById(req.params.id)
-            .populate({
-                path: "comments",
-                populate: { path: "author" },
-            })
-            .populate("author")], 
-        language); 
+            [
+                await Project.findById(req.params.id)
+                    .populate({
+                        path: "comments",
+                        populate: { path: "author" },
+                    })
+                    .populate("author"),
+            ],
+            language
+        );
         project = project[0];
-        
+
         if (!project) {
             req.flash("error", "Cannot find that project!");
             return res.redirect("/projects");
@@ -123,11 +121,8 @@ module.exports.showProject = async (req, res) => {
         let currencyData;
 
         if (!apiFetch || now - new Date(apiFetch.lastFetchTime).getTime() > 1000 * 60 * 60) {
-            const response = await fetch(
-               currencyToken
-            );
+            const response = await fetch(currencyToken);
             const freshData = await response.json();
-            
 
             if (!apiFetch) {
                 apiFetch = new ApiFetch({
@@ -154,8 +149,6 @@ module.exports.showProject = async (req, res) => {
             userCurrency,
             mapBoxToken, // Pass Mapbox token
         });
-
-        
     } catch (error) {
         console.error("Error in showProject:", error);
         req.flash("error", "Something went wrong!");
@@ -168,7 +161,7 @@ module.exports.getProjectsByCategory = async (req, res) => {
     const language = req.session.language || defaultLanguage;
     try {
         // ChatGPT magic to find projects in the specified category by checking if queried category matches any key of the categories map in each projects
-        // Don't ask how this works 
+        // Don't ask how this works
         const projects = await Project.find({
             $expr: {
                 $gt: [
@@ -180,20 +173,19 @@ module.exports.getProjectsByCategory = async (req, res) => {
                                 cond: {
                                     $eq: [
                                         { $toLower: "$$cat.k" }, // Convert stored key to lowercase
-                                        category.toLowerCase() // Convert user input to lowercase
-                                    ]
-                                }
-                            }
-                        }
+                                        category.toLowerCase(), // Convert user input to lowercase
+                                    ],
+                                },
+                            },
+                        },
                     },
-                    0
-                ]
+                    0,
+                ],
             },
-            isDraft: false
-        });        
-        // console.log("📌 Fetched Projects:", projects);
-        
-        const transformedProjects = getDisplayTitleAndDescription(projects,language);
+            isDraft: false,
+        });
+
+        const transformedProjects = getDisplayTitleAndDescription(projects, language);
 
         // Render category-specific projects page
         res.render("projects/category", {
@@ -206,11 +198,8 @@ module.exports.getProjectsByCategory = async (req, res) => {
     }
 };
 
-
-
-
 module.exports.renderNewForm = async (req, res) => {
-    const { draftId } = req.query; // ✅ Get draftId from query params
+    const { draftId } = req.query;
     let draft = null;
     let nextStep = 1; // Default to Step 1
 
@@ -220,7 +209,7 @@ module.exports.renderNewForm = async (req, res) => {
             req.flash("error", "Draft not found.");
             return res.redirect("/projects/drafts");
         }
-       
+
         //Determine the step based on draft completion
         if (!draft.originalTitle || !draft.location) {
             nextStep = 1; // Stay on Step 1 if Title or Location is missing
@@ -233,8 +222,6 @@ module.exports.renderNewForm = async (req, res) => {
         } else {
             nextStep = 4; // If everything is complete, stay on the last step
         }
-        
-        
     }
 
     res.render("projects/new", {
@@ -245,7 +232,6 @@ module.exports.renderNewForm = async (req, res) => {
         mapBoxToken: mapBoxToken,
     });
 };
-
 
 module.exports.updateProject = async (req, res) => {
     const { id } = req.params;
@@ -312,7 +298,7 @@ module.exports.viewLibrary = async (req, res) => {
     res.render("projects/library", { projects: user.savedProjects });
 };
 
-//One controller function to handle both save draft and create project
+// One controller function to handle both save draft and create new project
 module.exports.upsertProject = async (req, res) => {
     try {
         const { draftId } = req.body;
@@ -325,29 +311,32 @@ module.exports.upsertProject = async (req, res) => {
         }
 
         // Process uploaded images
-        const uploadedImages = req.files?.map(file => ({
-            url: file.path,
-            filename: file.filename,
-        })) || [];
+        const uploadedImages =
+            req.files?.map((file) => ({
+                url: file.path,
+                filename: file.filename,
+            })) || [];
 
         // Handle image deletions
         if (project && req.body.deleteImages?.length) {
-            await Promise.all(req.body.deleteImages.map(async (filename) => {
-                await cloudinary.uploader.destroy(filename);
-            }));
+            await Promise.all(
+                req.body.deleteImages.map(async (filename) => {
+                    await cloudinary.uploader.destroy(filename);
+                })
+            );
             await project.updateOne({ $pull: { images: { filename: { $in: req.body.deleteImages } } } });
         }
-    
+
         // Compute project embedding
         const embedding = await computeProjectEmbedding(isDraft ? "" : req.body.project.title.get("en") + " in " + req.body.project.location);
-        
+
         // Prepare project data
         const projectData = {
             ...req.body.project,
-            images: [...(project?.images || []), ...uploadedImages], 
+            images: [...(project?.images || []), ...uploadedImages],
             geometry: {
-                type: "Point", 
-                coordinates: JSON.parse(req.body.project.geometry)
+                type: "Point",
+                coordinates: JSON.parse(req.body.project.geometry),
             },
             categories: JSON.parse(req.body.project.categories),
             isDraft, // Dynamically set based on endpoint
@@ -360,7 +349,6 @@ module.exports.upsertProject = async (req, res) => {
 
         console.log(projectData);
 
-        // Apply updates and save
         project.set(projectData);
         await project.save();
 
@@ -382,8 +370,6 @@ module.exports.upsertProject = async (req, res) => {
     }
 };
 
-
-
 module.exports.deleteDraft = async (req, res) => {
     try {
         const { id } = req.params;
@@ -404,4 +390,3 @@ async function get_user(Users, req) {
     }
     return user;
 }
-
