@@ -108,11 +108,10 @@
                                 </label>
                                 <div class="input-group">
                                     <select class="form-select" id="currency" name="project[currency]" required>
-                                        <option value="THB" <%=draft && draft.currency==='THB' ? 'selected' : '' %>>THB
-                                            - ฿</option>
-                                        <option value="USD" <%=draft && draft.currency==='USD' ? 'selected' : '' %>>USD
-                                            - $</option>
+                                        <option value="THB" <%= (draft && draft.currency === 'THB') || (!draft && currency === 'THB') ? 'selected' : '' %>>THB - ฿</option>
+                                        <option value="USD" <%= (draft && draft.currency === 'USD') || (!draft && currency === 'USD') ? 'selected' : '' %>>USD - $</option>
                                     </select>
+                                    
                                     <input class="form-control" type="number" id="fundingGoal"
                                         name="project[fundingGoal]" placeholder="<%= 0 %>"
                                         value="<%= draft ? draft.fundingGoal : '' %>" required />

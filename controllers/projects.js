@@ -180,10 +180,10 @@ module.exports.getProjectsByCategory = async (req, res) => {
 };
 
 module.exports.renderNewForm = async (req, res) => {
-    const { draftId } = req.query;
+    const { draftId} = req.query;
     let draft = null;
     let nextStep = 1; // Default to Step 1
-
+    const user = await Users.findById(req.user._id);
     if (draftId) {
         draft = await Project.findById(draftId);
         if (!draft) {
@@ -207,6 +207,7 @@ module.exports.renderNewForm = async (req, res) => {
 
     res.render("projects/new", {
         draft,
+        currency: user.currency,
         nextStep, // ✅ Pass nextStep to frontend
         categories: JSON.stringify(categories), // From utils
         savedCategories: draft ? JSON.stringify(draft.categories || {}) : "{}", // Load saved checkboxes
