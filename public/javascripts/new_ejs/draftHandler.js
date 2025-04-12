@@ -61,7 +61,7 @@ function updateFlashMessage(message, type) {
         setTimeout(() => {
             alertDiv.remove();
         }, 500);
-    }, 2000);
+    }, 2500);
 }
 
 
@@ -149,6 +149,40 @@ function isFormValid() {
 
 // ✅ Helper function to submit form data (Handles both drafts & project creation)
 async function upsertProject(isDraft = false) {
+    // Allow no location
+    const locationInput = document.querySelector(".mapboxgl-ctrl-geocoder input");
+    if (locationInput?.value.trim() === "") {
+        document.getElementById("location").value = "";
+        document.getElementById("geometry").value = "[]";
+    } 
+    // But if there is a location, ensure a valid location is selected
+    else if (!locationSelected) {
+        updateFlashMessage("Please select a valid location from the dropdown.", "error");
+        currentStep = 1; // Location step
+        goToStep();
+        return;
+    }
+
+    // Check if entered date doesn't exceed 10 years from today
+    const deadlineStr = document.getElementById("deadline")?.value.trim();
+
+    if (deadlineStr) {
+        const deadline = new Date(deadlineStr);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Strip time for accurate comparison
+        const maxDate = new Date();
+        maxDate.setFullYear(today.getFullYear() + 10);
+
+        const deadlineTooFar = isNaN(deadline.getTime()) || deadline < today || deadline > maxDate;
+
+        if (deadlineTooFar) {
+            updateFlashMessage("Please make sure the deadline is after today and within 10 years from now.", "error");
+            currentStep = 3;
+            goToStep();
+            return;
+        }
+    }
+
     // If publishing, validate form
     if (!isDraft && isFormValid()) {
         updateFlashMessage("Please fill in everything before creating a project.", "error");
@@ -181,26 +215,6 @@ async function upsertProject(isDraft = false) {
     
 }
 
-// ✅ Handlers for saving draft & creating project
-function saveDraft() {
-    // Allow empty autocomplete options
-    const locationInput = document.querySelector(".mapboxgl-ctrl-geocoder input");
-    if (locationInput?.value.trim() === "") {
-        document.getElementById("location").value = "";
-        document.getElementById("geometry").value = "[]";
-    } 
-    // Ensure a valid location is selected
-    else if (!locationSelected) {
-        updateFlashMessage("Please select a valid location from the dropdown before saving.", "error");
-        return;
-    }
-
-    upsertProject(true); //isDraft = true
-}
-
-function createProject() {
-    upsertProject(false); // isDraft = false
-}
 
 document.addEventListener("DOMContentLoaded", goToStep);
 

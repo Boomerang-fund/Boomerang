@@ -37,7 +37,7 @@
                             <button type="button" class="btn btn-primary" onclick="nextStep(2)">
                                 <%= __('createProject.nextButton') %>
                             </button>
-                            <button type="button" class="btn btn-secondary" onclick="saveDraft()">
+                            <button type="button" class="btn btn-secondary" onclick="upsertProject(isDraft=true)">
                                 <%= __('createProject.saveDraftButton') %>
                             </button>
                         </div>
@@ -92,7 +92,7 @@
                                     <button type="button" class="btn btn-primary" onclick="nextStep(3)">
                                         <%= __('createProject.nextButton') %>
                                     </button>
-                                    <button type="button" class="btn btn-secondary" onclick="saveDraft()">
+                                    <button type="button" class="btn btn-secondary" onclick="upsertProject(isDraft=true)">
                                         <%= __('createProject.saveDraftButton') %>
                                     </button>
                         </div>
@@ -132,7 +132,7 @@
                             <button type="button" class="btn btn-primary" onclick="nextStep(4)">
                                 <%= __('createProject.nextButton') %>
                             </button>
-                            <button type="button" class="btn btn-secondary" onclick="saveDraft()">
+                            <button type="button" class="btn btn-secondary" onclick="upsertProject(isDraft=true)">
                                 <%= __('createProject.saveDraftButton') %>
                             </button>
                         </div>
@@ -143,10 +143,10 @@
                             <button type="button" class="btn btn-secondary" onclick="previousStep(3)">
                                 <%= __('createProject.previousButton') %>
                             </button>
-                            <button type="button" class="btn btn-success" onclick="createProject()">
+                            <button type="button" class="btn btn-success" onclick="upsertProject(isDraft=false)">
                                 <%= __('createProject.submitButton') %>
                             </button>
-                            <button type="button" class="btn btn-secondary" onclick="saveDraft()">
+                            <button type="button" class="btn btn-secondary" onclick="upsertProject(isDraft=true)">
                                 <%= __('createProject.saveDraftButton') %>
                             </button>
                         </div>
