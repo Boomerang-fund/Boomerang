@@ -5,8 +5,9 @@ const projects = require("./startups");
 const fs = require("fs");
 const path = require("path");
 const { categories: predefinedCategories } = require("../utils/categories");
+const { title } = require("process");
 
-
+const { computeProjectEmbedding } = require("../utils/embedding");
 
 
 
@@ -31,13 +32,18 @@ async function main() {
 const seedDB = async (wordVectors) => {
     await Project.deleteMany({});
     for (let i = 0; i < 100; i++) {
+
+
         const randomProject = projects[Math.floor(Math.random() * projects.length)];
        
         const randomCity = cities[Math.floor(Math.random() * cities.length)];
         const fundingGoal = Math.floor(Math.random() * 50) * 1000 + 1000;
-        const titleEn = generateTitleVariation(randomProject.title["en"]);
+        const titleEn = randomProject.title["en"];
         const mappedCategories = new Map();
-
+        const thing = titleEn + " in " +  `${randomCity.city}, ${randomCity.state}`;
+        
+        const embedding = await computeProjectEmbedding(thing);
+        console.log(embedding);
         if (randomProject.categories && typeof randomProject.categories === "object") {
             for (const [category, keywords] of Object.entries(randomProject.categories)) {
                 mappedCategories.set(category, Array.isArray(keywords) ? keywords : []);
@@ -75,7 +81,8 @@ const seedDB = async (wordVectors) => {
                 },
             ],
             status: "active",
-            embedding: [],
+            embedding: embedding,
+            
             categories: mappedCategories
         });
 
@@ -89,14 +96,3 @@ main();
 // **Utility Functions**
 
 
-function generateTitleVariation(title) {
-    const prefixes = [""];
-    const suffixes = [""];
-    const variations = [
-        title, // Original
-        `${title} ${suffixes[Math.floor(Math.random() * suffixes.length)]}`, // Add suffix
-        `${prefixes[Math.floor(Math.random() * prefixes.length)]} ${title}`, // Add prefix
-        `${prefixes[Math.floor(Math.random() * prefixes.length)]} ${title} ${suffixes[Math.floor(Math.random() * suffixes.length)]}`, // Prefix + Suffix
-    ];
-    return variations[Math.floor(Math.random() * variations.length)];
-}

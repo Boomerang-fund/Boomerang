@@ -73,24 +73,6 @@ function mapGeoJSON(projects) {
     return ret;
 }
 
-module.exports.renderNewForm = async (req, res) => {
-    const { draftId } = req.query;
-    let draft = null;
-
-    if (draftId) {
-        draft = await Project.findById(draftId);
-        // if (!draft) {
-        //     req.flash("error", "Draft not found.");
-        //     return res.redirect("/projects/drafts");
-        // }
-    }
-
-    res.render("projects/new", {
-        draft, // ✅ Now, draft might contain a valid object
-        categories: JSON.stringify(categories),
-        mapBoxToken: mapBoxToken,
-    });
-};
 
 module.exports.showProject = async (req, res) => {
     try {
@@ -352,7 +334,9 @@ module.exports.upsertProject = async (req, res) => {
         await project.save();
 
         if (isDraft) {
-            return res.status(200).json({ success: true, message: "Draft saved successfully!", draftId: project._id });
+            req.flash("success", "Draft saved successfully!");
+            return res.json({ success: true, redirectUrl: `/projects/my-projects`, draftId: project._id });
+            
         } else {
             req.flash("success", "Successfully created a new project!");
             return res.json({ success: true, redirectUrl: `/projects/${project._id}` });
@@ -362,10 +346,7 @@ module.exports.upsertProject = async (req, res) => {
 
         if (req.url.includes("save-draft")) {
             return res.status(500).json({ success: false, message: "Failed to save draft." });
-        } else {
-            req.flash("error", "Failed to create or update the project. Please ensure all required fields are filled.");
-            return res.redirect("/projects/new");
-        }
+        } 
     }
 };
 

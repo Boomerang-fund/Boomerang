@@ -19,7 +19,7 @@ exports.searchProjects = async (req, res) => {
             project,
             similarity: cosineSimilarity(queryEmbedding, project.embedding),
         }))
-        .filter((item) => item.similarity > 0.3)
+        .filter((item) => item.similarity > 0.25)
         .sort((a, b) => b.similarity - a.similarity)
         .map((item) => item.project);
 

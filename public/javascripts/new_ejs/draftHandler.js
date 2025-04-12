@@ -61,7 +61,7 @@ function updateFlashMessage(message, type) {
         setTimeout(() => {
             alertDiv.remove();
         }, 500);
-    }, 3000);
+    }, 2000);
 }
 
 
@@ -99,24 +99,58 @@ function prepareFormData() {
 
 // ✅ Validate form before submission
 function isFormValid() {
-    const requiredFields = ["originalTitle", "originalDescription", "location", "geometry", "fundingGoal", "currency", "deadline"];
-
-    // Check for empty required fields
-    const isEmptyField = requiredFields.some(field => {
-        const input = document.getElementById(field);
-        return !input || !input.value.trim() || (["fundingGoal", "deadline"].includes(field) && Number(input.value) <= 0);
-    });
-
-    // Ensure at least one category is selected
+    const getValue = (id) => document.getElementById(id)?.value.trim();
+    const hasImages = document.querySelectorAll("#images-container img").length > 0;
     const hasCategories = document.querySelector("#categories-container input[type='checkbox']:checked");
 
-    return !isEmptyField && hasCategories;
+    const originalTitle = getValue("originalTitle");
+    const originalDescription = getValue("originalDescription");
+    const location = getValue("location");
+    const geometry = getValue("geometry");
+    const fundingGoal = Number(getValue("fundingGoal"));
+    const currency = getValue("currency");
+    const deadline = Number(getValue("deadline"));
+
+    
+
+    // Check for missing or invalid required inputs
+    const isInvalid =
+        // !hasImages || 
+        // No image validation (For now)
+        !originalTitle ||
+        !originalDescription ||
+        !location ||
+        !geometry ||
+        !currency ||
+        fundingGoal <= 0 ||
+        deadline <= 0 ||
+        !hasCategories;
+    // Determine step to navigate to
+    
+    if (isInvalid){
+            
+        if (!originalTitle || !location) {
+            currentStep = 1;
+        } else if (!originalDescription || !hasImages) {
+            currentStep = 2;
+        } else if (!fundingGoal || fundingGoal <= 0 || !deadline || deadline <= 0) {
+            currentStep = 3;
+        } else if (!hasCategories) {
+            currentStep = 4;
+        } else {
+            currentStep = 4;
+        }
+
+        goToStep();
+    }
+    return isInvalid;
 }
 
-// ✅ Submit form data (Handles both drafts & project creation)
-async function submitProject(isDraft = false) {
+
+// ✅ Helper function to submit form data (Handles both drafts & project creation)
+async function upsertProject(isDraft = false) {
     // If publishing, validate form
-    if (!isDraft && !isFormValid()) {
+    if (!isDraft && isFormValid()) {
         updateFlashMessage("Please fill in everything before creating a project.", "error");
         return;
     }
@@ -124,31 +158,27 @@ async function submitProject(isDraft = false) {
     const formData = prepareFormData();
     const endpoint = isDraft ? "/projects/save-draft" : "/projects/create-project";
 
-    try {
-        const response = await fetch(endpoint, {
-            method: "POST",
-            body: formData,
-        });
+    
+    const response = await fetch(endpoint, {
+        method: "POST",
+        body: formData,
+    });
 
-        const data = await response.json();
-        if (data.success) {
+    const data = await response.json();
+    if (data.success) {
+        if (isDraft) {
             
-
-            if (isDraft) {
-                // Update draft ID in form to persist changes
-                updateFlashMessage(data.message, "success");
-                document.querySelector('input[name="draftId"]').value = data.draftId;
-            } else {
-                // Redirect to project page after creation
-                window.location.href = data.redirectUrl;
-            }
+            
+            // document.querySelector('input[name="draftId"]').value = data.draftId;
+            window.location.href = data.redirectUrl;
         } else {
-            updateFlashMessage(data.message, "error");
+            // Redirect to project page after creation
+            window.location.href = data.redirectUrl;
         }
-    } catch (error) {
-        console.error(`Error ${isDraft ? "saving draft" : "creating project"}:`, error);
-        alert(`Failed to ${isDraft ? "save draft" : "create project"}.`);
+    } else {
+        updateFlashMessage(data.message, "error");
     }
+    
 }
 
 // ✅ Handlers for saving draft & creating project
@@ -165,11 +195,11 @@ function saveDraft() {
         return;
     }
 
-    submitProject(true); //isDraft = true
+    upsertProject(true); //isDraft = true
 }
 
 function createProject() {
-    submitProject(false); // isDraft = false
+    upsertProject(false); // isDraft = false
 }
 
 document.addEventListener("DOMContentLoaded", goToStep);
