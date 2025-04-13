@@ -221,4 +221,3 @@ document.addEventListener("DOMContentLoaded", goToStep);
 // Declare global functions
 window.nextStep = nextStep;
 window.previousStep = previousStep;
-window.saveDraft = saveDraft;

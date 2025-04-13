@@ -70,6 +70,12 @@ const ProjectSchema = new Schema(
                 return !this.get("isDraft");
             },
         },
+        currentFunding: {
+            type: Number,
+            required: function () {
+                return !this.get("isDraft");
+            },
+        },
         location: {
             type: String,
             required: function () {

@@ -8,13 +8,18 @@ const { cloudinary } = require("../cloudinary");
 
 const currencyToken = process.env.CURRENCY_TOKEN;
 const { categories } = require("../utils/categories.js"); // Import the categories data
-
+const { getProjectCurrencySymbol, getExchangeRates } = require('../utils/currencyUtils'); 
 const {defaultLanguage, defaultCurrency } = require("../utils/constants");
 const { computeProjectEmbedding } = require("../utils/embedding");
 
 module.exports.index = async (req, res) => {
     const language = req.session.language || defaultLanguage;
+    const currency = req.session.currency || defaultCurrency;
     const user = await get_user(Users, req);
+
+    let currencyData;
+    const response = await fetch(currencyToken);
+    currencyData = await response.json();
 
     const allProjects = await Project.find({});
     const projects = getDisplayTitleAndDescription(allProjects, language);
@@ -39,6 +44,12 @@ module.exports.index = async (req, res) => {
             geoJsonProjects,
             projects: publishedProjects,
             myProjects, // Pass user's own projects
+            
+            currencyData,
+            userCurrency: currency, 
+            getProjectCurrencySymbol,
+            getExchangeRates,
+            
         });
     } catch (err) {
         console.error("Error loading projects:", err);
@@ -101,7 +112,7 @@ module.exports.showProject = async (req, res) => {
 
         let currencyData;
 
-        if (!apiFetch || now - new Date(apiFetch.lastFetchTime).getTime() > 1000 * 60 * 60) {
+        if (!apiFetch || now - new Date(apiFetch.lastFetchTime).getTime() > oneHour) {
             const response = await fetch(currencyToken);
             const freshData = await response.json();
 
@@ -121,13 +132,14 @@ module.exports.showProject = async (req, res) => {
             currencyData = apiFetch.currencyData;
         }
 
-        const userCurrency = req.user ? (await Users.findById(req.user._id)).currency : currency;
-
+       
         // Pass the project, currencyData, and mapToken to the template
         res.render("projects/show", {
             project,
             currencyData,
-            userCurrency,
+            userCurrency: currency,
+            getProjectCurrencySymbol,
+            getExchangeRates,
             mapBoxToken, // Pass Mapbox token
         });
     } catch (error) {

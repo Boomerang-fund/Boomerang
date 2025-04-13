@@ -1,14 +1,7 @@
 <!-- i18n -->
 
 <% layout('layouts/boilerplate') %> 
-<% function getCurrencySymbol(currency) {
-const currencySymbols = { USD: "$", THB: "฿" }; 
-return currencySymbols[currency] || currency; 
-} 
-function getExchangeRates(userCurrency, projectCurrency, projectAmount, exchangeRates) { 
-    return (projectAmount * (exchangeRates.data[userCurrency] / exchangeRates.data[projectCurrency])).toFixed(2); 
-} 
-%>
+
 
 <div class="row">
     <!-- Left Column: Project Card -->
@@ -55,7 +48,31 @@ function getExchangeRates(userCurrency, projectCurrency, projectAmount, exchange
             </button>
             <% } %>
         </div>
-
+        <div>
+            <% 
+                const truePercent = ((project.currentFunding / project.fundingGoal) * 100).toFixed(2);
+                const barPercent = Math.min(truePercent, 100); 
+            %>
+        
+            <div class="progress mt-2">
+                <div 
+                    class="progress-bar" 
+                    role="progressbar" 
+                    style="width: <%= barPercent %>%;" 
+                    aria-valuenow="<%= truePercent %>" 
+                    aria-valuemin="0" 
+                    aria-valuemax="100"
+                >
+                    <%= truePercent %>%
+                </div>
+            </div>
+            <%= getProjectCurrencySymbol(userCurrency) %><%= getExchangeRates(userCurrency, project.currency, project.currentFunding, currencyData) %> raised<br>
+            <%= getProjectCurrencySymbol(userCurrency) %><%= getExchangeRates(userCurrency, project.currency, project.fundingGoal, currencyData) %> goal
+        
+            
+        </div>
+        
+        
         <div class="card mb-4">
             <div class="card-body">
                 <h5 class="card-title"><%= project.displayTitle %></h5>
@@ -65,12 +82,7 @@ function getExchangeRates(userCurrency, projectCurrency, projectAmount, exchange
                 <li class="list-group-item text-muted">
                     <%= project.location %>
                 </li>
-                <li class="list-group-item text-muted">
-                    <b> <%= __('show.fundingGoal') %>: </b>
-                    <%= getCurrencySymbol(selectedCurrency) %> <%=
-                    getExchangeRates(selectedCurrency, project.currency,
-                    project.fundingGoal, currencyData) %>
-                </li>
+                
                 <li class="list-group-item">
                     <b> <%= __('show.submittedBy') %>: </b>
                     <%= project.author.username %>

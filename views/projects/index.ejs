@@ -116,18 +116,24 @@
                         <% const deadlineDate=new Date(project.deadline);
                             const currentDate=new Date();
                             const timeDifference=deadlineDate - currentDate;
-                            const daysLeft=Math.ceil(timeDifference / (1000 * 60 * 60 * 24)); %>
+                            const daysLeft=Math.ceil(timeDifference / (1000 * 60 * 60 * 24)); 
+                    
+                            const truePercent = ((project.currentFunding / project.fundingGoal) * 100).toFixed(2);
+                            const barPercent = Math.min(truePercent, 100); %>
                         <p class="card-text">
                             <small class="text-muted">
-                                <% if (daysLeft> 0) { %>
+                                <% if (daysLeft > 0) { %>
                                     <i class="fas fa-clock"></i>
-                                    <%= daysLeft %>
-                                    <%= __('index.daysLeft') %>
+                                    <%= daysLeft %> <%= __('index.daysLeft') %>
                                 <% } else { %>
                                     <span class="text-danger">
                                         <%= __('recommendedProjects.deadlinePassed') %>
                                     </span>
                                 <% } %>
+                        
+                                <!-- Dot and true percent -->
+                                <span class="mx-1">•</span>
+                                <%= truePercent %>% funded
                             </small>
                         </p>
                         <a href="/projects/<%= project._id %>" class="btn btn-primary">

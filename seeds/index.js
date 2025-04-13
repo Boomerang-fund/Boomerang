@@ -38,12 +38,13 @@ const seedDB = async (wordVectors) => {
        
         const randomCity = cities[Math.floor(Math.random() * cities.length)];
         const fundingGoal = Math.floor(Math.random() * 50) * 1000 + 1000;
+        const currentFunding = Math.floor(Math.random() * (fundingGoal + 1));
         const titleEn = randomProject.title["en"];
         const mappedCategories = new Map();
         const thing = titleEn + " in " +  `${randomCity.city}, ${randomCity.state}`;
         
         const embedding = await computeProjectEmbedding(thing);
-        console.log(embedding);
+        
         if (randomProject.categories && typeof randomProject.categories === "object") {
             for (const [category, keywords] of Object.entries(randomProject.categories)) {
                 mappedCategories.set(category, Array.isArray(keywords) ? keywords : []);
@@ -63,6 +64,7 @@ const seedDB = async (wordVectors) => {
             originalDescription: randomProject.description["en"],
             currency: "THB",
             fundingGoal: fundingGoal,
+            currentFunding: currentFunding,
             geometry: {
                 type: "Point",
                 coordinates: [randomCity.longitude, randomCity.latitude],
